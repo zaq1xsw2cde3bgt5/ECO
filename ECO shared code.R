@@ -609,165 +609,6 @@ ggsave(filename = pdf_out, plot = final_plot, width = 18, height = 10, units = "
 
 
 
-data_path <- "/data/ECO Nature data.csv"
-data <- read.csv(data_path)
-
-data <- data %>%
-  filter(Name != "Wang.Yuan") %>%
-  filter(Name != "Jin.Yifan") %>%
-  filter(Name != "SuoerdaiZhang") %>%
-  filter(Name != "QingfangLi") %>%
-  filter(Name != "HonglanMa")
-
-
-data$Group <- factor(
-  data$Group,
-  levels = c(1, 0),
-  labels = c("True electroacupuncture", "Sham electroacupuncture")
-)
-
-supp_observation_cols <- c(
-  "Overall.Stage.No.significant.nausea",
-  "Acute.Stage.No.significant.nausea",
-  "Delayed.Stage.No.significant.nausea",
-  "Overall.Stage.No.nausea.VAS.Score...5",
-  "Acute.Stage.No.nausea.VAS.Score...5",
-  "Delayed.Stage.No.nausea.VAS.Score...5"
-  
-)
-
-long_data_supp <- data %>%
-  pivot_longer(
-    cols = supp_observation_cols,
-    names_to = "Observation",
-    values_to = "Effectiveness"
-  ) %>%
-  filter(!is.na(Effectiveness))
-
-
-supp_group_summaries <- long_data_supp %>%
-  group_by(Group, Observation) %>%
-  summarise(
-    n       = n(),
-    success = sum(Effectiveness == 0),        
-    ControlRate = mean(Effectiveness == 0),
-    .groups = 'drop'
-  ) %>%
-  rowwise() %>%
-  mutate(ci = list(binom.test(success, n)$conf.int)) %>%
-  mutate(LCL = ci[[1]], UCL = ci[[2]]) %>%
-  ungroup() %>%
-  select(-ci)
-
-
-supp_chisq_results <- long_data_supp %>%
-  group_by(Observation) %>%
-  summarise(test = list(chisq.test(table(Group, Effectiveness))),
-            .groups = "drop") %>%
-  mutate(chisq_p = map_dbl(test, ~ .x$p.value)) %>%
-  select(Observation, chisq_p) %>%
-  mutate(
-    p_label = ifelse(
-      chisq_p < 1e-4,
-      "< 0.0001",
-      paste0("= ", formatC(chisq_p, format = "f", digits = 4))
-    )
-  )
-
-supp_group_summaries <- supp_group_summaries %>%
-  left_join(supp_chisq_results, by = "Observation")
-
-supp_group_summaries$Observation <- factor(supp_group_summaries$Observation,
-                                           levels = supp_observation_cols)
-supp_chisq_results$Observation <- factor(supp_chisq_results$Observation,
-                                         levels = supp_observation_cols)
-
-
-y_top_for_p <- 105 
-
-supp_plot <- ggplot(supp_group_summaries,
-                    aes(x = Observation, y = ControlRate*100, fill = Group)) +
-  geom_col(position = position_dodge(width = 0.7), width = 0.7) +
-  
-  geom_text(
-    aes(label = sprintf("%.1f", ControlRate * 100),
-        y = ControlRate*100 + 2),
-    position = position_dodge(width = 0.7),
-    size = 4.5, vjust = 0, color = "black"
-  ) +
-  
-  
-  geom_text(
-    data = supp_chisq_results,
-    aes(x = Observation, y = y_top_for_p, label = paste0("P ", p_label)),
-    inherit.aes = FALSE,
-    size = 5, color = "black"
-  ) +
-  
-  scale_fill_manual(values = c("red", "blue")) +
-  
-  labs(
-    x = "",
-    y = "Control Rate (%)",
-    fill = " ",
-    caption = "Figure S4. Proportion of patients achieving no significant nausea and no nausea (VAS score < 5 mm) during the overall, acute, and delayed phases \n in the true and sham electroacupuncture groups."
-  )+
-  
-  theme_minimal() +
-  theme(
-    legend.position  = c(0.5, 0.95),
-    legend.direction = "horizontal",
-    legend.text      = element_text(size = 16),
-    legend.title     = element_text(size = 16),
-    axis.text.x      = element_text(size = 12),
-    axis.text.y      = element_text(size = 14),
-    axis.title.y     = element_text(size = 14),
-    panel.grid       = element_blank(),
-    axis.line        = element_line(color = "black"),
-    plot.caption     = element_text(hjust = 0, size = 14)
-  ) +
-  
-  scale_y_continuous(
-    limits = c(0, 120),
-    breaks = seq(0, 100, 10),
-    expand = c(0, 0)
-  ) +
-  
-  scale_x_discrete(
-    labels = c(
-      "Overall.Stage.No.significant.nausea"   = "Overall stage\nno significant nausea",
-      "Acute.Stage.No.significant.nausea"     = "Acute stage\nno significant nausea",
-      "Delayed.Stage.No.significant.nausea"   = "Delayed stage\nno significant nausea",
-      "Overall.Stage.No.nausea.VAS.Score...5" = "Overall stage\nno nausea VAS < 5mm",
-      "Acute.Stage.No.nausea.VAS.Score...5"   = "Acute stage\nno nausea VAS < 5mm",
-      "Delayed.Stage.No.nausea.VAS.Score...5" = "Delayed stage\nno nausea VAS < 5mm"
-      
-      
-    )
-  )
-
-print(supp_plot)
-
-
-pdf_out <- "/results/Figure S4.pdf"
-ggsave(filename = pdf_out, plot = supp_plot, width = 14, height = 8, units = "in")
-
-
-supp_export <- supp_group_summaries %>%
-  mutate(
-    Rate_CI = sprintf("%.1f%% (%.1f–%.1f)",
-                      ControlRate * 100, LCL * 100, UCL * 100),
-    p_show  = ifelse(chisq_p < 1e-4, "< 0.0001",
-                     formatC(chisq_p, format = "f", digits = 4))
-  ) %>%
-  select(Observation, Group, n, success, ControlRate, LCL, UCL, Rate_CI, p_show)
-
-xlsx_out <- "/results/Figure S4.xlsx"
-write.xlsx(supp_export, xlsx_out, asTable = TRUE)
-
-
-
-
 
 
 
@@ -1141,6 +982,176 @@ dev.off()
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Figure S4
+
+data_path <- "/data/ECO Nature data.csv"
+data <- read.csv(data_path)
+
+data <- data %>%
+  filter(Name != "Wang.Yuan") %>%
+  filter(Name != "Jin.Yifan") %>%
+  filter(Name != "SuoerdaiZhang") %>%
+  filter(Name != "QingfangLi") %>%
+  filter(Name != "HonglanMa")
+
+
+data$Group <- factor(
+  data$Group,
+  levels = c(1, 0),
+  labels = c("True electroacupuncture", "Sham electroacupuncture")
+)
+
+supp_observation_cols <- c(
+  "Overall.Stage.No.significant.nausea",
+  "Acute.Stage.No.significant.nausea",
+  "Delayed.Stage.No.significant.nausea",
+  "Overall.Stage.No.nausea.VAS.Score...5",
+  "Acute.Stage.No.nausea.VAS.Score...5",
+  "Delayed.Stage.No.nausea.VAS.Score...5"
+  
+)
+
+long_data_supp <- data %>%
+  pivot_longer(
+    cols = supp_observation_cols,
+    names_to = "Observation",
+    values_to = "Effectiveness"
+  ) %>%
+  filter(!is.na(Effectiveness))
+
+
+supp_group_summaries <- long_data_supp %>%
+  group_by(Group, Observation) %>%
+  summarise(
+    n       = n(),
+    success = sum(Effectiveness == 0),        
+    ControlRate = mean(Effectiveness == 0),
+    .groups = 'drop'
+  ) %>%
+  rowwise() %>%
+  mutate(ci = list(binom.test(success, n)$conf.int)) %>%
+  mutate(LCL = ci[[1]], UCL = ci[[2]]) %>%
+  ungroup() %>%
+  select(-ci)
+
+
+supp_chisq_results <- long_data_supp %>%
+  group_by(Observation) %>%
+  summarise(test = list(chisq.test(table(Group, Effectiveness))),
+            .groups = "drop") %>%
+  mutate(chisq_p = map_dbl(test, ~ .x$p.value)) %>%
+  select(Observation, chisq_p) %>%
+  mutate(
+    p_label = ifelse(
+      chisq_p < 1e-4,
+      "< 0.0001",
+      paste0("= ", formatC(chisq_p, format = "f", digits = 4))
+    )
+  )
+
+supp_group_summaries <- supp_group_summaries %>%
+  left_join(supp_chisq_results, by = "Observation")
+
+supp_group_summaries$Observation <- factor(supp_group_summaries$Observation,
+                                           levels = supp_observation_cols)
+supp_chisq_results$Observation <- factor(supp_chisq_results$Observation,
+                                         levels = supp_observation_cols)
+
+
+y_top_for_p <- 105 
+
+supp_plot <- ggplot(supp_group_summaries,
+                    aes(x = Observation, y = ControlRate*100, fill = Group)) +
+  geom_col(position = position_dodge(width = 0.7), width = 0.7) +
+  
+  geom_text(
+    aes(label = sprintf("%.1f", ControlRate * 100),
+        y = ControlRate*100 + 2),
+    position = position_dodge(width = 0.7),
+    size = 4.5, vjust = 0, color = "black"
+  ) +
+  
+  
+  geom_text(
+    data = supp_chisq_results,
+    aes(x = Observation, y = y_top_for_p, label = paste0("P ", p_label)),
+    inherit.aes = FALSE,
+    size = 5, color = "black"
+  ) +
+  
+  scale_fill_manual(values = c("red", "blue")) +
+  
+  labs(
+    x = "",
+    y = "Control Rate (%)",
+    fill = " ",
+    caption = "Figure S4. Proportion of patients achieving no significant nausea and no nausea (VAS score < 5 mm) during the overall, acute, and delayed phases \n in the true and sham electroacupuncture groups."
+  )+
+  
+  theme_minimal() +
+  theme(
+    legend.position  = c(0.5, 0.95),
+    legend.direction = "horizontal",
+    legend.text      = element_text(size = 16),
+    legend.title     = element_text(size = 16),
+    axis.text.x      = element_text(size = 12),
+    axis.text.y      = element_text(size = 14),
+    axis.title.y     = element_text(size = 14),
+    panel.grid       = element_blank(),
+    axis.line        = element_line(color = "black"),
+    plot.caption     = element_text(hjust = 0, size = 14)
+  ) +
+  
+  scale_y_continuous(
+    limits = c(0, 120),
+    breaks = seq(0, 100, 10),
+    expand = c(0, 0)
+  ) +
+  
+  scale_x_discrete(
+    labels = c(
+      "Overall.Stage.No.significant.nausea"   = "Overall stage\nno significant nausea",
+      "Acute.Stage.No.significant.nausea"     = "Acute stage\nno significant nausea",
+      "Delayed.Stage.No.significant.nausea"   = "Delayed stage\nno significant nausea",
+      "Overall.Stage.No.nausea.VAS.Score...5" = "Overall stage\nno nausea VAS < 5mm",
+      "Acute.Stage.No.nausea.VAS.Score...5"   = "Acute stage\nno nausea VAS < 5mm",
+      "Delayed.Stage.No.nausea.VAS.Score...5" = "Delayed stage\nno nausea VAS < 5mm"
+      
+      
+    )
+  )
+
+print(supp_plot)
+
+
+pdf_out <- "/results/Figure S4.pdf"
+ggsave(filename = pdf_out, plot = supp_plot, width = 14, height = 8, units = "in")
+
+
+supp_export <- supp_group_summaries %>%
+  mutate(
+    Rate_CI = sprintf("%.1f%% (%.1f–%.1f)",
+                      ControlRate * 100, LCL * 100, UCL * 100),
+    p_show  = ifelse(chisq_p < 1e-4, "< 0.0001",
+                     formatC(chisq_p, format = "f", digits = 4))
+  ) %>%
+  select(Observation, Group, n, success, ControlRate, LCL, UCL, Rate_CI, p_show)
+
+xlsx_out <- "/results/Figure S4.xlsx"
+write.xlsx(supp_export, xlsx_out, asTable = TRUE)
 
 
 
