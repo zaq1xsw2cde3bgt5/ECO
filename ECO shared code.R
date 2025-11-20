@@ -824,13 +824,6 @@ library(dplyr)
 data_path <- "/data/ECO Nature data.csv"
 df <- read.csv(data_path, stringsAsFactors = FALSE, fileEncoding="UTF-8")
 
-df <- df %>%
-  filter(Name != "Wang.Yuan") %>%
-  filter(Name != "Jin.Yifan") %>%
-  filter(Name != "SuoerdaiZhang") %>%
-  filter(Name != "QingfangLi") %>%
-  filter(Name != "HonglanMa")
-
 
 df$BMI = ifelse(df$BMI < 18.5, 1,
                 ifelse(df$BMI < 25, 2, 3))
