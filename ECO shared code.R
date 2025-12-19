@@ -621,7 +621,262 @@ ggsave(filename = pdf_out, plot = final_plot, width = 18, height = 10, units = "
 
 
 
-### Figure S1
+
+
+
+
+
+### Figure 5
+ 
+data_path <- "/data/ECO Nature data.csv"
+data <- read.csv(data_path)
+ 
+data <- data %>%
+  filter(!Name %in% c(
+    "Wang.Yuan", "Jin.Yifan", "SuoerdaiZhang",
+    "QingfangLi", "HonglanMa"
+  ))
+
+ data <- data %>%
+  filter(!is.na(EQ.5D.5L0), !is.na(EQ.5D.5L1)) %>%
+  mutate(
+    Delta_EQ5D5L = EQ.5D.5L1 - EQ.5D.5L0,
+    Nausea = factor(
+      Overall.Stage.No.nausea,
+      levels = c(0, 1),
+      labels = c(
+        "Overall phase\nno nausea",
+        "Overall phase\nnausea"
+      )
+    )
+  )
+
+ desc_table <- data %>%
+  group_by(Nausea) %>%
+  summarise(
+    Median = median(Delta_EQ5D5L, na.rm = TRUE),
+    Q1 = quantile(Delta_EQ5D5L, 0.25, na.rm = TRUE),
+    Q3 = quantile(Delta_EQ5D5L, 0.75, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    label = sprintf(
+      "Median (IQR)\n%.3f (%.3f to %.3f)",
+      Median, Q1, Q3
+    )
+  )
+ wilcox_res <- wilcox.test(Delta_EQ5D5L ~ Nausea, data = data)
+
+p_label <- paste0(
+  "Wilcoxon rank-sum test, P = ",
+  formatC(wilcox_res$p.value, format = "f", digits = 4)
+)
+
+ p <- ggplot(data, aes(x = Nausea, y = Delta_EQ5D5L, fill = Nausea)) +
+  
+ 
+  geom_violin(trim = FALSE, alpha = 0.6, color = NA) +
+  
+  
+  geom_boxplot(
+    width = 0.15,
+    outlier.shape = NA,
+    color = "black",
+    size = 0.3
+  ) +
+  
+ 
+  geom_text(
+    data = desc_table,
+    aes(x = Nausea, y = -0.76, label = label),
+    inherit.aes = FALSE,
+    size = 3.2,
+    hjust = 0.5
+  ) +
+  
+ 
+  annotate(
+    "text",
+    x = 1.5,
+    y = -0.9,
+    label = p_label,
+    size = 3.5
+  ) +
+  
+  scale_fill_manual(
+    values = c(
+      "Overall phase\nno nausea" = "#377EB8",   
+      "Overall phase\nnausea"    = "#E41A1C"   
+    )
+  ) +
+  
+  scale_y_continuous(
+    limits = c(-1.0, 0.15),
+    breaks = seq(-1.0, 0.15, by = 0.2)
+  ) +
+  
+  labs(
+    x = NULL,
+    y = "Change in EQ-5D-5L index  (post − baseline)",
+    caption = "Figure 5. a. Post-intervention EQ-5D-5L index adjusted for baseline according to nausea occurrence during the overall phase;"
+  ) +
+  
+  theme_classic(base_size = 12) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = 10),
+    axis.text.y = element_text(size = 10),
+    plot.caption = element_text(hjust = 0, size = 10)
+  )
+
+ p
+ 
+ggsave(
+  filename = "/results/Figure 5a.pdf",
+  plot = p,
+  width = 6,
+  height = 6,
+  units = "in"
+)
+
+###
+ library(dplyr)
+library(ggplot2)
+
+ data_path <- "/data/ECO Nature data.csv"
+data <- read.csv(data_path)
+ 
+data <- data %>%
+  filter(!Name %in% c(
+    "Wang.Yuan", "Jin.Yifan", "SuoerdaiZhang",
+    "QingfangLi", "HonglanMa"
+  ))
+
+ data <- data %>%
+  filter(!is.na(VAS0), !is.na(VAS1)) %>%
+  mutate(
+    Delta_VAS = VAS1 - VAS0,
+    Nausea = factor(
+      Overall.Stage.No.nausea,
+      levels = c(0, 1),
+      labels = c(
+        "Overall phase\nno nausea",
+        "Overall phase\nnausea"
+      )
+    )
+  )
+
+ desc_table <- data %>%
+  group_by(Nausea) %>%
+  summarise(
+    Median = median(Delta_VAS, na.rm = TRUE),
+    Q1 = quantile(Delta_VAS, 0.25, na.rm = TRUE),
+    Q3 = quantile(Delta_VAS, 0.75, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    label = sprintf(
+      "Median (IQR)\n%.1f (%.1f to %.1f)",
+      Median, Q1, Q3
+    )
+  )
+
+ wilcox_res <- wilcox.test(Delta_VAS ~ Nausea, data = data)
+
+p_label <- paste0(
+  "Wilcoxon rank-sum test, P = ",
+  formatC(wilcox_res$p.value, format = "f", digits = 4)
+)
+
+ p <- ggplot(data, aes(x = Nausea, y = Delta_VAS, fill = Nausea)) +
+  
+  
+  geom_violin(trim = FALSE, alpha = 0.6, color = NA) +
+  
+ 
+  geom_boxplot(
+    width = 0.15,
+    outlier.shape = NA,
+    color = "black",
+    size = 0.3
+  ) +
+  
+ 
+  geom_text(
+    data = desc_table,
+    aes(x = Nausea, y = -75, label = label),
+    inherit.aes = FALSE,
+    size = 3.2,
+    hjust = 0.5
+  ) +
+  
+ 
+  annotate(
+    "text",
+    x = 1.5,
+    y = -85,
+    label = p_label,
+    size = 3.5
+  ) +
+  
+  scale_fill_manual(
+    values = c(
+      "Overall phase\nno nausea" = "#377EB8",  
+      "Overall phase\nnausea"    = "#E41A1C"  
+    )
+  ) +
+  
+  scale_y_continuous(
+    limits = c(-100, 25),
+    breaks = seq(-100, 20, by = 20)
+  ) +
+  
+  labs(
+    x = NULL,
+    y = "Change in VAS score (post − baseline)",
+    caption = " Figure 5. b. Post-intervention nausea severity measured by EQ VAS according to nausea occurrence during the overall phase."
+  ) +
+  
+  theme_classic(base_size = 12) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = 10),
+    axis.text.y = element_text(size = 10),
+    plot.caption = element_text(hjust = 0, size = 10)
+  )
+
+
+p
+
+ggsave(
+  filename = "/results/Figure 5b.pdf",
+  plot = p,
+  width = 6,
+  height = 6,
+  units = "in"
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Extended Data Fig. 1
 
 library(ggplot2)
 library(dplyr)
@@ -754,7 +1009,7 @@ final_plot <- ggplot(group_summaries,
     x = "",
     y = "Control Rate (%)",
     fill = " ",
-    caption = "Figure S1. Proportion of patients with no nausea during the overall, acute, and delayed phases in the true and sham electroacupuncture groups (per-protocol set).\nError bars represent 95% confidence intervals."
+    caption = "Extended Data Fig. 1. Proportion of patients with no nausea during the overall, acute, and delayed phases in the true and sham electroacupuncture groups (per-protocol set).\nError bars represent 95% confidence intervals."
   ) +
   theme_minimal() +
   theme(
@@ -781,7 +1036,7 @@ final_plot <- ggplot(group_summaries,
 print(final_plot)
 
 
-pdf_out <- "/results/Figure S1.pdf"
+pdf_out <- "/results/Extended Data Fig. 1.pdf"
 ggsave(filename = pdf_out, plot = final_plot, width = 12, height = 10, units = "in")
 
 
@@ -790,6 +1045,170 @@ ggsave(filename = pdf_out, plot = final_plot, width = 12, height = 10, units = "
 
 
 
+### Extended Data Fig. 2
+
+ library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(broom)
+library(purrr)
+library(openxlsx)
+library(scales)
+
+ data_path <- "/data/ECO Nature data.csv"
+data <- read.csv(data_path)
+
+ 
+ 
+data <- data %>%
+  filter(!Name %in% c(
+    "Wang.Yuan", "Jin.Yifan", "SuoerdaiZhang",
+    "QingfangLi", "HonglanMa"
+  ))
+ data <- data %>%
+  filter(is.na(Chemotherapy.TIME))
+
+
+ 
+data$Group <- factor(
+  data$Group,
+  levels = c(1, 0),
+  labels = c("True electroacupuncture", "Sham electroacupuncture")
+)
+
+ observation_cols <- c("Overall.Stage.No.nausea")
+
+long_data <- data %>%
+  pivot_longer(
+    cols = observation_cols,
+    names_to = "Observation",
+    values_to = "Effectiveness"
+  ) %>%
+  filter(!is.na(Effectiveness))
+
+ group_summaries <- long_data %>%
+  group_by(Group, Observation) %>%
+  summarise(
+    n       = n(),
+    success = sum(Effectiveness == 0),
+    ControlRate = mean(Effectiveness == 0),
+    .groups = 'drop'
+  ) %>%
+  rowwise() %>%
+  mutate(ci = list(binom.test(success, n)$conf.int)) %>%
+  mutate(LCL = ci[[1]], UCL = ci[[2]]) %>%
+  ungroup() %>%
+  select(-ci)
+
+ chisq_results <- long_data %>%
+  group_by(Observation) %>%
+  summarise(test = list(chisq.test(table(Group, Effectiveness))),
+            .groups = "drop") %>%
+  mutate(chisq_p = map_dbl(test, ~ .x$p.value)) %>%
+  select(Observation, chisq_p) %>%
+  mutate(
+    p_label = ifelse(
+      chisq_p < 1e-4,
+      "< 0.0001",
+      paste0("= ", formatC(chisq_p, format = "f", digits = 4))
+    )
+  )
+
+group_summaries <- group_summaries %>%
+  left_join(chisq_results, by = "Observation")
+
+group_summaries$Observation <- factor(group_summaries$Observation,
+                                      levels = observation_cols)
+chisq_results$Observation <- factor(chisq_results$Observation,
+                                    levels = observation_cols)
+
+ overall_data <- group_summaries %>% filter(Observation == "Overall.Stage.No.nausea")
+
+p1 <- overall_data$ControlRate[overall_data$Group == "True electroacupuncture"]
+n1 <- overall_data$n[overall_data$Group == "True electroacupuncture"]
+
+p0 <- overall_data$ControlRate[overall_data$Group == "Sham electroacupuncture"]
+n0 <- overall_data$n[overall_data$Group == "Sham electroacupuncture"]
+
+RD <- p1 - p0
+SE <- sqrt(p1*(1-p1)/n1 + p0*(1-p0)/n0)
+CI_low <- RD - 1.96*SE
+CI_high <- RD + 1.96*SE
+
+RD_label <- sprintf("Risk difference\n%.1f (95%% CI, %.1f – %.1f)",
+                    RD*100, CI_low*100, CI_high*100)
+
+ 
+y_true <- p1
+y_sham <- p0
+y_top  <- max(y_true, y_sham) + 0.15
+x_left  <- 0.85
+x_right <- 1.15
+
+ final_plot <- ggplot(group_summaries,
+                     aes(x = Observation, y = ControlRate*100, fill = Group)) +
+  
+   
+  geom_col(position = position_dodge(width = 0.7), width = 0.7) +
+  
+  
+  geom_errorbar(
+    aes(ymin = LCL*100, ymax = UCL*100),
+    position = position_dodge(width = 0.7),
+    width = 0.2,
+    linewidth = 0.7,
+    color = "black"
+  ) +
+  
+   ）
+  geom_text(
+    aes(label = sprintf("%.1f", ControlRate * 100),
+        y = UCL*100 + 2),
+    position = position_dodge(width = 0.7),
+    size = 4.5, vjust = 0, color = "black"
+  ) +
+  
+   
+  geom_text(
+    data = chisq_results,
+    aes(x = Observation, y = 80, label = paste0("P ", p_label)),
+    inherit.aes = FALSE,
+    size = 5, color = "black"
+  ) +
+   
+scale_fill_manual(values = c("red", "blue")) +
+  labs(
+    x = "",
+    y = "Control Rate (%)",
+    fill = " ",
+    caption = "Extended Data Fig. 2. Proportion of patients with no nausea during the overall phase in the true and sham electroacupuncture groups after exclusion of advanced-stage patients with prior chemotherapy."
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position  = c(0.5, 0.95),
+    legend.direction = "horizontal",
+    legend.text      = element_text(size = 16),
+    legend.title     = element_text(size = 16),
+    axis.text.x      = element_text(size = 14),
+    axis.text.y      = element_text(size = 14),
+    axis.title.y     = element_text(size = 14),
+    panel.grid       = element_blank(),
+    axis.line        = element_line(color = "black"),
+    plot.caption     = element_text(hjust = 1, size = 12)
+  ) +
+  scale_y_continuous(
+    limits = c(0, 100),
+    breaks = seq(0, 100, 10),
+    expand = c(0, 0)
+  ) +
+  scale_x_discrete(
+    labels = c("Overall.Stage.No.nausea" = "Overall stage no nausea")
+  )
+
+print(final_plot)
+
+ pdf_out <- "/results/Extended Data Fig. 2.pdf"
+ 
 
 
 
@@ -809,11 +1228,7 @@ ggsave(filename = pdf_out, plot = final_plot, width = 12, height = 10, units = "
 
 
 
-
-
-
-
-### Figure S2-3
+### Extended Data Fig. 3 6
 library(marginaleffects)
 library(rio)
 library(survival)
@@ -823,6 +1238,13 @@ library(dplyr)
 
 data_path <- "/data/ECO Nature data.csv"
 df <- read.csv(data_path, stringsAsFactors = FALSE, fileEncoding="UTF-8")
+
+df <- df %>%
+  filter(Name != "Wang.Yuan") %>%
+  filter(Name != "Jin.Yifan") %>%
+  filter(Name != "SuoerdaiZhang") %>%
+  filter(Name != "QingfangLi") %>%
+  filter(Name != "HonglanMa")
 
 
 df$BMI = ifelse(df$BMI < 18.5, 1,
@@ -967,7 +1389,7 @@ p$plot <- p$plot +
 print(p)
 
 
-pdf("/results/Figure S3.pdf", width = 6, height = 6)
+pdf("/results/Extended Data Fig. 3.pdf", width = 6, height = 6)
 print(p)
 dev.off()
 
@@ -987,9 +1409,332 @@ dev.off()
 
 
 
+### Extended Data Fig. 4
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(broom)
+library(purrr)
+library(openxlsx)
+library(scales)
 
-### Figure S4
+ 
+data_path <- "/data/ECO Nature data.csv"
+data <- read.csv(data_path, stringsAsFactors = FALSE, fileEncoding="UTF-8")
 
+
+ data <- data %>%
+  filter(Name != "Wang.Yuan") %>%
+  filter(Name != "Jin.Yifan") %>%
+  filter(Name != "SuoerdaiZhang") %>%
+  filter(Name != "QingfangLi") %>%
+  filter(Name != "HonglanMa")
+
+ 
+data$Group <- factor(
+  data$Group,
+  levels = c(1, 0),
+  labels = c("True electroacupuncture", "Sham electroacupuncture")
+)
+
+
+ data <- data %>%
+  rowwise() %>%
+  mutate(
+    Max_Nausea_VAS = if (all(is.na(c(Nausea.d1, Nausea.d2, Nausea.d3, Nausea.d4, Nausea.d5)))) {
+      NA_real_
+    } else {
+      max(c(Nausea.d1, Nausea.d2, Nausea.d3, Nausea.d4, Nausea.d5), na.rm = TRUE)
+    }
+  ) %>%
+  ungroup()
+
+
+
+table(data$Max_Nausea_VAS)
+
+ data <- data %>%
+  mutate(
+    Max_Nausea_Category = cut(
+      Max_Nausea_VAS,
+      breaks = c(-Inf, 0, 30, 60, 100),
+      labels = c("0", "1–30", "31–60", "61–100"),
+      right = TRUE,
+      ordered_result = TRUE
+    )
+  )
+
+
+table(data$Max_Nausea_Category)
+
+
+ plot_data <- data %>%
+  count(Group, Max_Nausea_Category) %>%
+  group_by(Group) %>%
+  mutate(
+    Percent = n / sum(n),
+    Label = ifelse(
+      Percent >= 0.05,
+      paste0(sprintf("%.1f", Percent * 100), "%"),
+      ""
+    )
+  )
+
+ nature_colors <- c(
+  "0"      = "#4DAF4A",   
+  "1–30"   = "#FFD92F",  
+  "31–60"  = "#377EB8",  
+  "61–100" = "#E41A1C"    
+)
+
+ chisq_p <- chisq.test(table(data$Group, data$Max_Nausea_Category))$p.value
+p_label <- paste0(
+  "Chi-square test, P = ",
+  formatC(chisq_p, format = "f", digits = 4)
+)
+
+ p <- ggplot(
+  plot_data,
+  aes(x = Group, y = Percent * 100, fill = Max_Nausea_Category)
+) +
+  geom_bar(
+    stat = "identity",
+    width = 0.65,
+    color = "black",
+    size = 0.25
+  ) +
+  
+  geom_text(
+    aes(label = Label),
+    position = position_stack(vjust = 0.5),
+    size = 3,
+    color = "black"
+  ) +
+  
+  annotate(
+    "text",
+    x = 1.5,
+    y = 105,
+    label = p_label,
+    size = 3.5
+  ) +
+  
+  scale_y_continuous(
+    limits = c(0, 110),
+    breaks = c(0, 25, 50, 75, 100),
+    expand = expansion(mult = c(0, 0))
+  ) +
+  
+  scale_fill_manual(
+    values = nature_colors,
+    name = "VAS"
+  ) +
+  
+  labs(
+    x = NULL,
+    y = "Percentage of patients (%)",
+    caption = "Extended Data Fig. 4. Distribution of maximum nausea severity during the 5-day follow-up in the true and sham electroacupuncture groups."
+  ) +
+  
+  theme_classic(base_size = 12) +
+  theme(
+    legend.position = "right",
+    legend.title = element_text(size = 10),
+    legend.text  = element_text(size = 9),
+    
+    axis.text.x  = element_text(size = 10),
+    axis.text.y  = element_text(size = 10),
+    
+    axis.line    = element_line(size = 0.5),
+    axis.ticks   = element_line(size = 0.5),
+    
+    plot.caption = element_text(
+      hjust = 0,      
+      size  = 10,
+      margin = margin(t = 8)
+    ),
+    
+    plot.margin  = margin(6, 6, 6, 6)
+  )
+
+p
+
+ggsave(
+  filename = "/results/Extended Data Fig. 4.pdf",
+  plot = p,
+  width = 6,
+  height = 4,
+  units = "in"
+)
+
+
+
+
+ 
+
+
+
+
+
+
+ 
+###Extended Data Fig. 5
+ library(ggplot2)
+library(dplyr)
+library(scales)
+
+ data_path <- "/data/ECO Nature data.csv"
+data <- read.csv(data_path, stringsAsFactors = FALSE, fileEncoding="UTF-8")
+ data <- data %>%
+  filter(!Name %in% c("Wang.Yuan", "Jin.Yifan", "SuoerdaiZhang",
+                      "QingfangLi", "HonglanMa"))
+
+ data$Group <- factor(
+  data$Group,
+  levels = c(1, 0),
+  labels = c("True electroacupuncture", "Sham electroacupuncture")
+)
+
+ data <- data %>%
+  rowwise() %>%
+  mutate(
+    Max_Nausea_VAS = max(
+      c(Nausea.d1, Nausea.d2, Nausea.d3, Nausea.d4, Nausea.d5),
+      na.rm = TRUE
+    )
+  ) %>%
+  ungroup()
+
+ summary_table <- data %>%
+  group_by(Group) %>%
+  summarise(
+    Median = median(Max_Nausea_VAS, na.rm = TRUE),
+    Q1     = quantile(Max_Nausea_VAS, 0.25, na.rm = TRUE),
+    Q3     = quantile(Max_Nausea_VAS, 0.75, na.rm = TRUE)
+  )
+
+print(summary_table)
+
+ label_data <- summary_table %>%
+  mutate(
+    label = paste0(
+      "Median (IQR)\n",
+      sprintf("%.0f", Median), " (",
+      sprintf("%.0f", Q1), "–",
+      sprintf("%.0f", Q3), ")"
+    ),
+    y_pos = 95   
+  )
+
+ wilcox_res <- wilcox.test(Max_Nausea_VAS ~ Group, data = data)
+
+p_label <- paste0(
+  "Wilcoxon rank-sum test, P = ",
+  formatC(wilcox_res$p.value, format = "f", digits = 4)
+)
+
+ p <- ggplot(data, aes(x = Group, y = Max_Nausea_VAS, fill = Group)) +
+  
+ 
+  geom_violin(
+    trim = FALSE,
+    alpha = 0.6,
+    color = NA
+  ) +
+  
+ 
+  geom_boxplot(
+    width = 0.15,
+    outlier.shape = NA,
+    color = "black",
+    size = 0.3
+  ) +
+  
+ 
+  geom_text(
+    data = label_data,
+    aes(x = Group, y = y_pos, label = label),
+    inherit.aes = FALSE,
+    size = 3.2,
+    hjust = 0.5,
+    vjust = 1
+  ) +
+  
+ 
+  annotate(
+    "text",
+    x = 1.5,
+    y = 105,
+    label = p_label,
+    size = 3.5
+  ) +
+  
+  scale_y_continuous(
+    limits = c(0, 105),
+    breaks = c(0, 20, 40, 60, 80, 100)
+  ) +
+  
+  scale_fill_manual(
+    values = c(
+      "True electroacupuncture" = "#377EB8",
+      "Sham electroacupuncture" = "#E41A1C"
+    )
+  ) +
+  
+  labs(
+    x = NULL,
+    y = "VAS score",
+    caption = "Extended Data Fig. 5. Distribution of maximum nausea severity assessed by VAS during the 5-day follow-up. VAS, visual analogue scale; IQR, interquartile range."
+  ) +
+  
+  theme_classic(base_size = 12) +
+  theme(
+    legend.position = "none",
+    
+    axis.text.x  = element_text(size = 10),
+    axis.text.y  = element_text(size = 10),
+    
+    axis.line    = element_line(size = 0.5),
+    axis.ticks   = element_line(size = 0.5),
+    
+    plot.caption = element_text(
+      hjust = 0,
+      size = 10,
+      margin = margin(t = 8)
+    ),
+    
+    plot.margin  = margin(6, 6, 6, 6)
+  )
+
+p
+
+ ggsave(
+  filename = "/results/Extended Data Fig. 5.pdf",
+  plot = p,
+  width = 6,
+  height = 4,
+  units = "in"
+)
+
+
+
+
+
+
+
+
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+### Extended Data Fig. 7
 data_path <- "/data/ECO Nature data.csv"
 data <- read.csv(data_path)
 
@@ -1091,7 +1836,7 @@ supp_plot <- ggplot(supp_group_summaries,
     x = "",
     y = "Control Rate (%)",
     fill = " ",
-    caption = "Figure S4. Proportion of patients achieving no significant nausea and no nausea (VAS score < 5 mm) during the overall, acute, and delayed phases \n in the true and sham electroacupuncture groups."
+    caption = "Extended Data Fig. 7. Proportion of patients achieving no significant nausea and no nausea (VAS score < 5 mm) during the overall, acute, and delayed phases \n in the true and sham electroacupuncture groups."
   )+
   
   theme_minimal() +
@@ -1130,21 +1875,138 @@ supp_plot <- ggplot(supp_group_summaries,
 print(supp_plot)
 
 
-pdf_out <- "/results/Figure S4.pdf"
+pdf_out <- "/results/Extended Data Fig. 7.pdf"
 ggsave(filename = pdf_out, plot = supp_plot, width = 14, height = 8, units = "in")
 
+ 
 
-supp_export <- supp_group_summaries %>%
+
+
+
+
+
+
+
+
+
+
+
+###Extended Data Fig. 8
+library(dplyr)
+library(ggplot2)
+
+ data_path <- "/data/ECO Nature data.csv"
+data <- read.csv(data_path)
+
+ 
+data <- data %>%
+  filter(!Name %in% c(
+    "Wang.Yuan", "Jin.Yifan", "SuoerdaiZhang",
+    "QingfangLi", "HonglanMa"
+  ))
+
+ data <- data %>%
+  filter(!is.na(EQ.5D.5L0), !is.na(EQ.5D.5L1)) %>%
   mutate(
-    Rate_CI = sprintf("%.1f%% (%.1f–%.1f)",
-                      ControlRate * 100, LCL * 100, UCL * 100),
-    p_show  = ifelse(chisq_p < 1e-4, "< 0.0001",
-                     formatC(chisq_p, format = "f", digits = 4))
+    Delta_EQ5D5L = EQ.5D.5L1 - EQ.5D.5L0,
+    Nausea = factor(
+      Overall.Stage.No.nausea,
+      levels = c(0, 1),
+      labels = c(
+        "Overall phase\nno nausea",
+        "Overall phase\nnausea"
+      )
+    )
+  )
+
+ desc_table <- data %>%
+  group_by(Nausea) %>%
+  summarise(
+    Median = median(Delta_EQ5D5L, na.rm = TRUE),
+    Q1 = quantile(Delta_EQ5D5L, 0.25, na.rm = TRUE),
+    Q3 = quantile(Delta_EQ5D5L, 0.75, na.rm = TRUE),
+    .groups = "drop"
   ) %>%
-  select(Observation, Group, n, success, ControlRate, LCL, UCL, Rate_CI, p_show)
+  mutate(
+    label = sprintf(
+      "Median (IQR)\n%.3f (%.3f to %.3f)",
+      Median, Q1, Q3
+    )
+  )
 
-xlsx_out <- "/results/Figure S4.xlsx"
-write.xlsx(supp_export, xlsx_out, asTable = TRUE)
+ wilcox_res <- wilcox.test(Delta_EQ5D5L ~ Nausea, data = data)
+
+p_label <- paste0(
+  "Wilcoxon rank-sum test, P = ",
+  formatC(wilcox_res$p.value, format = "f", digits = 4)
+)
+
+ p <- ggplot(data, aes(x = Nausea, y = Delta_EQ5D5L, fill = Nausea)) +
+  
+   
+  geom_violin(trim = FALSE, alpha = 0.6, color = NA) +
+  
+   
+  geom_boxplot(
+    width = 0.15,
+    outlier.shape = NA,
+    color = "black",
+    size = 0.3
+  ) +
+  
+   
+  geom_text(
+    data = desc_table,
+    aes(x = Nausea, y = -0.76, label = label),
+    inherit.aes = FALSE,
+    size = 3.2,
+    hjust = 0.5
+  ) +
+  
+   
+  annotate(
+    "text",
+    x = 1.5,
+    y = -0.9,
+    label = p_label,
+    size = 3.5
+  ) +
+  
+  scale_fill_manual(
+    values = c(
+      "Overall phase\nno nausea" = "#377EB8",   
+      "Overall phase\nnausea"    = "#E41A1C"   
+    )
+  ) +
+  
+  scale_y_continuous(
+    limits = c(-1.0, 0.15),
+    breaks = seq(-1.0, 0.15, by = 0.2)
+  ) +
+  
+  labs(
+    x = NULL,
+    y = "Change in EQ-5D-5L index (post − baseline)",
+    caption = "Extended Data Fig. 8. Distribution of change in EQ-5D-5L index according to nausea occurrence during the overall phase. IQR, interquartile range; EO-5D-5L: EuroQol-5-dimension 5-level."
+  ) +
+  
+  theme_classic(base_size = 12) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = 10),
+    axis.text.y = element_text(size = 10),
+    plot.caption = element_text(hjust = 0, size = 10)
+  )
+
+ p
+
+ggsave(
+  filename = "/results/Extended Data Fig. 8.pdf",
+  plot = p,
+  width = 6,
+  height = 6,
+  units = "in"
+)
 
 
 
@@ -1154,7 +2016,185 @@ write.xlsx(supp_export, xlsx_out, asTable = TRUE)
 
 
 
-### Figure S5
+
+
+
+###Extended Data Fig. 9
+ library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(purrr)
+library(openxlsx)
+library(scales)
+
+ data_path <-  "/data/ECO Nature data.csv"
+data <- read.csv(data_path)
+
+ 
+data <- data %>%
+  filter(!Name %in% c(
+    "Wang.Yuan", "Jin.Yifan", "SuoerdaiZhang",
+    "QingfangLi", "HonglanMa"
+  ))
+
+ 
+data$Group <- factor(
+  data$Group,
+  levels = c(1, 0),
+  labels = c("True electroacupuncture", "Sham electroacupuncture")
+)
+
+ observation_cols <- c(
+  "Fatigue",
+  "Insomnia",
+  "Constipation"
+)
+
+ long_data <- data %>%
+  pivot_longer(
+    cols = all_of(observation_cols),
+    names_to = "Observation",
+    values_to = "Event"
+  ) %>%
+  filter(!is.na(Event))
+
+ group_summaries <- long_data %>%
+  group_by(Group, Observation) %>%
+  summarise(
+    n       = n(),
+    events  = sum(Event == 1),
+    Rate    = mean(Event == 1),
+    .groups = "drop"
+  ) %>%
+  rowwise() %>%
+  mutate(ci = list(binom.test(events, n)$conf.int)) %>%
+  mutate(LCL = ci[[1]], UCL = ci[[2]]) %>%
+  ungroup() %>%
+  dplyr::select(-ci)
+
+ chisq_results <- long_data %>%
+  group_by(Observation) %>%
+  summarise(
+    test = list(chisq.test(table(Group, Event))),
+    .groups = "drop"
+  ) %>%
+  mutate(chisq_p = map_dbl(test, ~ .x$p.value)) %>%
+  mutate(
+    p_label = ifelse(
+      chisq_p < 1e-4,
+      "< 0.0001",
+      paste0("= ", formatC(chisq_p, format = "f", digits = 4))
+    )
+  ) %>%
+  dplyr::select(Observation, chisq_p, p_label)
+
+group_summaries <- group_summaries %>%
+  left_join(chisq_results, by = "Observation")
+
+ final_plot <- ggplot(
+  group_summaries,
+  aes(x = Observation, y = Rate * 100, fill = Group)
+) +
+  
+  geom_col(
+    position = position_dodge(width = 0.7),
+    width = 0.7
+  ) +
+  
+   geom_text(
+    aes(label = paste0(events, "/", n)),
+    position = position_dodge(width = 0.7),
+    vjust = 1.5,
+    size = 5,
+    color = "black"
+  ) +
+  
+   geom_text(
+    aes(
+      label = sprintf("%.1f", Rate * 100),
+      y = Rate * 100 + 2
+    ),
+    position = position_dodge(width = 0.7),
+    size = 5,
+    vjust = 0,
+    color = "black"
+  ) +
+  
+   geom_text(
+    data = chisq_results,
+    aes(x = Observation, y = 52, label = paste0("P ", p_label)),
+    inherit.aes = FALSE,
+    size = 5,
+    color = "black"
+  ) +
+  
+  scale_fill_manual(
+    values = c(
+      "True electroacupuncture" = "#377EB8",
+      "Sham electroacupuncture" = "#E41A1C"
+    )
+  ) +
+  
+  scale_y_continuous(
+    limits = c(0, 65),
+    breaks = seq(0, 65, 10),
+    expand = c(0, 0)
+  ) +
+  
+  scale_x_discrete(
+    labels = c(
+      "Fatigue" = "Fatigue",
+      "Insomnia" = "Insomnia",
+      "Constipation" = "Constipation"
+    )
+  ) +
+  
+  labs(
+    x = "",
+    y = "Incidence (%)",
+    fill = " ",
+    caption = "Extended Data Fig. 9. Incidence of fatigue, insomnia, and constipation in the true and sham electroacupuncture groups."
+  ) +
+  
+  theme_minimal() +
+  theme(
+    legend.position  = c(0.5, 0.92),
+    legend.direction = "horizontal",
+    legend.text      = element_text(size = 16),
+    legend.title     = element_text(size = 16),
+    axis.text.x      = element_text(size = 14),
+    axis.text.y      = element_text(size = 14),
+    axis.title.y     = element_text(size = 14),
+    panel.grid       = element_blank(),
+    axis.line        = element_line(color = "black"),
+    plot.caption     = element_text(hjust = 0, size = 14)
+  )
+
+print(final_plot)
+
+ ggsave(
+  filename = "/results/Extended Data Fig. 3.pdf",
+  plot = final_plot,
+  width = 12,
+  height = 8,
+  units = "in"
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+###Extended Data Fig. 10
 
 library(ggplot2)
 library(dplyr)
@@ -1210,7 +2250,7 @@ final_plot <- ggplot(blinding_summary, aes(x = Group, y = Percentage*100, fill =
     x = "",
     y = "Percentage of patients (%)",
     fill = " ",
-    caption = "Figure S5. Blinding assessment in the true and sham electroacupuncture groups."
+    caption = "Extended Data Fig. 10. Blinding assessment in the true and sham electroacupuncture groups."
   ) +
   theme_minimal(base_size = 14) +
   theme(
@@ -1227,11 +2267,154 @@ final_plot <- ggplot(blinding_summary, aes(x = Group, y = Percentage*100, fill =
 print(final_plot)
 
 
-pdf_out <- "/results/Figure S5.pdf"
+pdf_out <- "/results/Extended Data Fig. 10.pdf"
 ggsave(filename = pdf_out, plot = final_plot, width = 8, height = 6, units = "in")
 
-
-xlsx_out <- "/results/Figure S5.xlsx"
-write.xlsx(blinding_summary, xlsx_out, asTable = TRUE)
+ 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#######Extended Data Fig. 11
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(broom)
+library(purrr)
+library(openxlsx)
+library(scales)
+
+ data_path <- "/data/ECO Nature data.csv"
+data <- read.csv(data_path)
+
+ 
+data <- data %>%
+  filter(Name != "Wang.Yuan") %>%
+  filter(Name != "Jin.Yifan") %>%
+  filter(Name != "SuoerdaiZhang") %>%
+  filter(Name != "QingfangLi") %>%
+  filter(Name != "HonglanMa")
+
+ 
+data <- data %>%
+  mutate(Adverse.events.related.to.electroacupuncture = 
+           ifelse(Adverse.events.related.to.electroacupuncture == "No", 1,
+                  ifelse(Adverse.events.related.to.electroacupuncture == "Bleeding", 0,
+                         Adverse.events.related.to.electroacupuncture)))
+ 
+data$Group <- factor(
+  data$Group,
+  levels = c(1, 0),
+  labels = c("True electroacupuncture", "Sham electroacupuncture")
+)
+
+ observation_cols <- c("Adverse.events.related.to.electroacupuncture")
+
+long_data <- data %>%
+  pivot_longer(
+    cols = observation_cols,
+    names_to = "Observation",
+    values_to = "Effectiveness"
+  ) %>%
+  filter(!is.na(Effectiveness))
+
+ group_summaries <- long_data %>%
+  group_by(Group, Observation) %>%
+  summarise(
+    n       = n(),
+    events  = sum(Effectiveness == 0),   
+    Rate    = mean(Effectiveness == 0),   
+    .groups = 'drop'
+  ) %>%
+  rowwise() %>%
+  mutate(ci = list(binom.test(events, n)$conf.int)) %>%
+  mutate(LCL = ci[[1]], UCL = ci[[2]]) %>%
+  ungroup() %>%
+  select(-ci)
+
+ chisq_results <- long_data %>%
+  group_by(Observation) %>%
+  summarise(test = list(chisq.test(table(Group, Effectiveness))),
+            .groups = "drop") %>%
+  mutate(chisq_p = map_dbl(test, ~ .x$p.value)) %>%
+  select(Observation, chisq_p) %>%
+  mutate(
+    p_label = ifelse(chisq_p < 1e-4, "< 0.0001",
+                     paste0("= ", formatC(chisq_p, format = "f", digits = 4)))
+  )
+
+group_summaries <- group_summaries %>%
+  left_join(chisq_results, by = "Observation")
+
+ final_plot <- ggplot(group_summaries,
+                     aes(x = "Bruising ", y = Rate*100, fill = Group)) +
+  geom_col(position = position_dodge(width = 0.7), width = 0.7) +  
+  
+  
+  geom_text(
+    aes(label = paste0(events, "/", n)),
+    position = position_dodge(width = 0.7),
+    vjust = 1.5, color = "black", size = 5
+  ) +
+  
+  
+  geom_text(
+    aes(label = sprintf("%.1f", Rate * 100),   
+        y = Rate*100 + 2),
+    position = position_dodge(width = 0.7),
+    size = 5, vjust = 0, color = "black"
+  ) +
+  
+  
+  
+  geom_text(
+    data = chisq_results,
+    aes(x = "Bruising ", y = 25, label = paste0("P ", p_label)),
+    inherit.aes = FALSE,
+    size = 5, color = "black"
+  ) +
+  
+  scale_fill_manual(values = c("blue", "red")) +
+  labs(
+    x = "",
+    y = "Incidence (%)",
+    fill = " ",
+    caption = "Extended Data Fig. 11. Incidence of electroacupuncture-related adverse event in the true and sham electroacupuncture groups."
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position  = c(0.5, 0.90),
+    legend.direction = "horizontal",
+    legend.text      = element_text(size = 16),
+    legend.title     = element_text(size = 16),
+    axis.text.x      = element_text(size = 14),
+    axis.text.y      = element_text(size = 14),
+    axis.title.y     = element_text(size = 14),
+    panel.grid       = element_blank(),
+    axis.line        = element_line(color = "black"),
+    plot.caption     = element_text(hjust = 0, size = 14)
+  ) +
+  scale_y_continuous(
+    limits = c(0, 35),
+    breaks = seq(0, 35, 10),
+    expand = c(0, 0)
+  )
+
+print(final_plot)
+
+pdf_out <- "/results/Extended Data Fig. 11.pdf"
+ggsave(filename = pdf_out, plot = final_plot, width = 12, height = 8, units = "in")
