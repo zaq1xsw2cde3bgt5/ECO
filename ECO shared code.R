@@ -146,7 +146,7 @@ final_plot <- ggplot(group_summaries,
     x = "",
     y = "Control Rate (%)",
     fill = " ",
-    caption = "Figure 2. Proportion of patients with no nausea during the overall, acute, and delayed phases in the true and sham electroacupuncture groups."
+    caption = "Figure 1. Proportion of patients with no nausea during the overall, acute, and delayed phases in the true and sham electroacupuncture groups."
   ) +
   theme_minimal() +
   theme(
@@ -175,7 +175,7 @@ final_plot <- ggplot(group_summaries,
 
 print(final_plot)
 
-pdf_out <- "/results/Figure 2.pdf"
+pdf_out <- "/results/Figure 1.pdf"
 ggsave(filename = pdf_out, plot = final_plot, width = 12, height = 8, units = "in")
 
 group_summaries_export <- group_summaries %>%
@@ -187,7 +187,7 @@ group_summaries_export <- group_summaries %>%
   ) %>%
   select(Observation, Group, n, success, ControlRate, LCL, UCL, Rate_CI, p_show)
 
-xlsx_out <- "/results/Figure 2.xlsx"
+xlsx_out <- "/results/Figure 1.xlsx"
 write.xlsx(group_summaries_export, xlsx_out, asTable = TRUE)
 
 
@@ -198,7 +198,7 @@ write.xlsx(group_summaries_export, xlsx_out, asTable = TRUE)
 
 
 
-##### Figure 3
+##### Figure 1
 
 data <- read.csv("/data/ECO Nature data.csv") %>%
   filter(Name != "Wang.Yuan", Name != "Jin.Yifan",Name != "SuoerdaiZhang",
@@ -304,7 +304,7 @@ final_df_out <- final_df_out %>%
 
 
 write.csv(final_df_out,
-          "/results/Figure 3.csv",
+          "/results/Figure 2.csv",
           row.names = FALSE)
 
 
@@ -321,7 +321,7 @@ library(forestploter)
 library(grid)
 
 
-df <- read_csv("/results/Figure 3.csv")
+df <- read_csv("/results/Figure 2.csv")
 
 risk_diff_CI <- function(a, n1, c, n0){
   p1 <- a/n1
@@ -445,7 +445,7 @@ p <- edit_plot(
 )
 
 
-pdf_out <- "/results/Figure 3.pdf"
+pdf_out <- "/results/Figure 2.pdf"
 pdf(pdf_out, width = 14, height = 7)  
 grid.newpage()
 grid.draw(p)
@@ -457,7 +457,7 @@ dev.off()
 
 
 
-###Figure4
+###Figure 3
 
 data_path <- "/data/ECO Nature data.csv"
 data <- read.csv(data_path)
@@ -561,7 +561,7 @@ final_plot <- ggplot(group_summaries,
     x = "",
     y = "Control Rate (%)",
     fill = " ",
-    caption = "Figure 4. Proportion of patients achieving total control, complete protection, and complete response during the overall, acute, and delayed phases in the true and sham electroacupuncture groups."
+    caption = "Figure 3. Proportion of patients achieving total control, complete protection, and complete response during the overall, acute, and delayed phases in the true and sham electroacupuncture groups."
   ) +
   
   
@@ -604,7 +604,7 @@ final_plot <- ggplot(group_summaries,
 print(final_plot)
 
 
-pdf_out <- "/results/Figure 4.pdf"
+pdf_out <- "/results/Figure 3.pdf"
 ggsave(filename = pdf_out, plot = final_plot, width = 18, height = 10, units = "in")
 
 
@@ -626,7 +626,7 @@ ggsave(filename = pdf_out, plot = final_plot, width = 18, height = 10, units = "
 
 
 
-### Figure 5
+### Figure 4
 
 library(ggplot2)
 library(dplyr)
@@ -764,7 +764,7 @@ p <- ggplot(plot_data, aes(x = Group, y = Adjusted_Mean, color = Group)) +
   labs(
     x = NULL,
     y = "EQ-5D-5L index",
-    caption = "Figure 5. a. Post-intervention EQ-5D-5L index adjusted for baseline according to nausea occurrence during the overall phase;"
+    caption = "Figure 4. a. Post-intervention EQ-5D-5L index adjusted for baseline according to nausea occurrence during the overall phase;"
   ) +
   
   theme_classic(base_size = 12) +
@@ -784,7 +784,7 @@ p <- ggplot(plot_data, aes(x = Group, y = Adjusted_Mean, color = Group)) +
 p
 
 ggsave(
-  filename = "/results/Figure 5a.pdf",
+  filename = "/results/Figure 4a.pdf",
   plot = p,
   width = 6,
   height = 5,
@@ -958,11 +958,137 @@ p <- ggplot(plot_data, aes(x = Group, y = Adjusted_Mean, color = Group)) +
 p
 
 ggsave(
-  filename = "/results/Figure 5b.pdf",
+  filename = "/results/Figure 4b.pdf",
   plot = p,
   width = 6,
   height = 5,
   units = "in"
+)
+
+
+
+
+
+
+
+
+
+library(dplyr)
+
+ 
+data <- read.csv(
+  "/data/ECO Nature data.csv",
+  stringsAsFactors = FALSE
+)
+
+
+ 
+snp_5 <- c(
+  "rs6443930",
+  "rs1045642",
+  "rs1128503",
+  "rs2530797",
+  "rs3755468"
+)
+
+snp_6 <- c(
+  snp_5,
+  "rs4680"
+)
+
+ 
+data_clean <- data %>%
+  filter(!Name %in% c(
+    "Wang.Yuan",
+    "Jin.Yifan",
+    "SuoerdaiZhang",
+    "QingfangLi",
+    "HonglanMa"
+  )) %>%
+  mutate(across(all_of(snp_6), ~ na_if(., "#N/A")))
+ 
+
+ 
+complete_5snp <- data_clean %>%
+  filter(if_all(all_of(snp_5), ~ !is.na(.)))
+
+nrow(complete_5snp)   
+ 
+complete_6snp <- data_clean %>%
+  filter(if_all(all_of(snp_6), ~ !is.na(.)))
+
+nrow(complete_6snp)    
+ 
+supplement_pool <- complete_5snp %>%
+  filter(is.na(rs4680))
+
+nrow(supplement_pool)   
+
+ 
+core_data <- complete_6snp
+
+table(core_data$Group)
+
+ 
+set.seed(2025)
+ 
+n_need <- 260 - nrow(core_data)  
+
+core_group <- table(core_data$Group)
+
+minor_group <- names(which.min(core_group))
+major_group <- names(which.max(core_group))
+
+diff_now <- abs(core_group[minor_group] - core_group[major_group])
+
+ 
+n_to_minor <- max(0, ceiling((diff_now - 1) / 1))
+n_to_minor <- min(n_to_minor, n_need)
+
+ 
+supp_minor_df <- supplement_pool %>%
+  filter(Group == minor_group)
+
+n_pick_minor <- min(n_to_minor, nrow(supp_minor_df))
+
+supp_minor <- supp_minor_df %>%
+  slice_sample(n = n_pick_minor)
+
+ 
+n_left <- n_need - nrow(supp_minor)
+
+supp_rest_df <- supplement_pool %>%
+  filter(!Name %in% supp_minor$Name)
+
+n_pick_rest <- min(n_left, nrow(supp_rest_df))
+
+supp_rest <- supp_rest_df %>%
+  slice_sample(n = n_pick_rest)
+
+supplement_selected <- bind_rows(supp_minor, supp_rest)
+
+ 
+analysis_data_260 <- bind_rows(core_data, supplement_selected)
+
+nrow(analysis_data_260)          
+table(analysis_data_260$Group)    
+
+sum(
+  apply(
+    analysis_data_260[, snp_6],
+    1,
+    function(x) all(!is.na(x))
+  )
+)
+
+
+
+
+write.csv(
+  analysis_data_260,
+  "/results/SNP_analysis_260.csv",
+  row.names = FALSE,
+  na = ""
 )
 
 
@@ -985,7 +1111,929 @@ ggsave(
 
 
 
-### Extended Data Fig. 1
+
+
+
+library(dplyr)
+library(HardyWeinberg)
+
+hwe_test_one_exact <- function(data, snp, group_value, group_var = "Group") {
+  
+  df <- data %>%
+    filter(.data[[group_var]] == group_value) %>%
+    select(all_of(snp)) %>%
+    filter(!is.na(.data[[snp]]))
+  
+  geno_counts <- table(df[[snp]])
+  
+
+  if (length(geno_counts) != 3) {
+    return(data.frame(
+      SNP = snp,
+      Group = group_value,
+      N = sum(geno_counts),
+      Genotypes = paste(names(geno_counts), collapse = "/"),
+      HWE_p = NA,
+      Note = "HWE not applicable (≠3 genotypes)"
+    ))
+  }
+  
+  
+ 
+  
+  hwe <- HWExact(geno_counts)
+  
+  data.frame(
+    SNP = snp,
+    Group = group_value,
+    N = sum(geno_counts),
+    Genotypes = paste(names(geno_counts), collapse = "/"),
+    HWE_p = hwe$pval,
+    Note = "Hardy–Weinberg exact test"
+  )
+}
+snp_list <- c(
+  "rs6443930",
+  "rs1045642",
+  "rs1128503",
+  "rs2530797",
+  "rs4680",
+  "rs3755468"
+)
+
+hwe_results_exact <- do.call(
+  rbind,
+  lapply(snp_list, function(snp) {
+    do.call(
+      rbind,
+      lapply(c(0, 1), function(g) {
+        hwe_test_one_exact(analysis_data_260, snp, g)
+      })
+    )
+  })
+)
+
+hwe_results_exact
+
+write.csv(
+  hwe_results_exact,
+  "/results/Supplement.Table 3.csv",
+  row.names = FALSE,
+  na = ""
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+snp_list <- c(
+  "rs6443930",
+  "rs1045642",
+  "rs1128503",
+  "rs2530797",
+  "rs4680",
+  "rs3755468"
+)
+
+event_var <- "Overall.Stage.No.nausea"
+group_var <- "Group"
+library(dplyr)
+
+snp_event_summary <- function(data, snp, group_value,
+                              group_var = "Group",
+                              event_var = "Overall.Stage.No.nausea") {
+  
+  df <- data %>%
+    filter(.data[[group_var]] == group_value) %>%
+    select(all_of(c(snp, event_var))) %>%
+    filter(!is.na(.data[[snp]]))   
+  
+
+  tab_test <- table(df[[snp]], df[[event_var]])
+  
+  p_value <- if (any(tab_test < 5)) {
+    fisher.test(tab_test)$p.value
+  } else {
+    chisq.test(tab_test)$p.value
+  }
+  
+  df %>%
+    group_by(Genotype = .data[[snp]]) %>%
+    summarise(
+      SNP = snp,
+      N = n(),
+      Event_n = sum(.data[[event_var]] == 0),
+      Event_pct = round(Event_n / N * 100),
+      P_value = signif(p_value, 3),
+      .groups = "drop"
+    ) %>%
+    mutate(
+      Event = paste0(Event_n, " (", Event_pct, ")")
+    ) %>%
+    select(
+      SNP,
+      Genotype,
+      N,
+      Event,
+      P_value
+    )
+}
+
+
+
+final_snp_table <- do.call(
+  rbind,
+  lapply(snp_list, function(snp) {
+    do.call(
+      rbind,
+      lapply(c(0, 1), function(g) {
+        snp_event_summary(
+          data = analysis_data_260,
+          snp = snp,
+          group_value = g,
+          group_var = "Group",
+          event_var = "Overall.Stage.No.nausea"
+        )
+      })
+    )
+  })
+)
+
+final_snp_table
+
+
+
+
+
+write.csv(
+  final_snp_table,
+  "/results/Extended Data Table 3.csv",
+  row.names = FALSE,
+  na = ""
+)
+table(analysis_data_260$Group)  
+final_snp_table
+
+
+
+
+
+
+
+
+
+
+
+analysis_data_260 <- analysis_data_260 %>%
+  mutate(
+    rs3755468_2grp = case_when(
+      rs3755468 == "CC" ~ "CC",
+      rs3755468 %in% c("TC", "TT") ~ "TC/TT",
+      TRUE ~ NA_character_
+    )
+  )
+
+
+
+snp_event_summary_2grp <- function(data, snp_2grp, group_value,
+                                   group_var = "Group",
+                                   event_var = "Overall.Stage.No.nausea") {
+  
+  df <- data %>%
+    filter(.data[[group_var]] == group_value) %>%
+    select(all_of(c(snp_2grp, event_var))) %>%
+    filter(!is.na(.data[[snp_2grp]]))
+  
+  tab_test <- table(df[[snp_2grp]], df[[event_var]])
+  
+  p_value <- if (any(tab_test < 5)) {
+    fisher.test(tab_test)$p.value
+  } else {
+    chisq.test(tab_test)$p.value
+  }
+  
+  df %>%
+    group_by(Genotype = .data[[snp_2grp]]) %>%
+    summarise(
+      N = n(),
+      Event_n = sum(.data[[event_var]] == 0),
+      Event_pct = round(Event_n / N * 100),
+      .groups = "drop"
+    ) %>%
+    mutate(
+      Event = paste0(Event_n, " (", Event_pct, ")"),
+      P_value = signif(p_value, 3)
+    ) %>%
+    select(
+      Genotype,
+      N,
+      Event,
+      P_value
+    )
+}
+
+
+
+
+
+
+
+final_snp_2grp_table <- do.call(
+  rbind,
+  lapply(c(0, 1), function(g) {
+    tmp <- snp_event_summary_2grp(
+      data = analysis_data_260,
+      snp_2grp = "rs3755468_2grp",
+      group_value = g,
+      group_var = "Group",
+      event_var = "Overall.Stage.No.nausea"
+    )
+    tmp$Group <- g
+    tmp
+  })
+)
+
+final_snp_2grp_table
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#############
+library(dplyr)
+library(ggplot2)
+library(scales)
+plot_df <- analysis_data_260 %>%
+  filter(!is.na(rs3755468)) %>%
+  mutate(
+    Genotype = factor(rs3755468, levels = c("CC", "TC", "TT")),
+    Group_label = factor(
+      Group,
+      levels = c(0, 1),
+      labels = c(
+        "Sham electroacupuncture",
+        "True electroacupuncture"
+      )
+    )
+  ) %>%
+  group_by(Group, Group_label, Genotype) %>%
+  summarise(
+    N = n(),
+    Control_n = sum(Overall.Stage.No.nausea == 0),
+    Control_rate = Control_n / N,
+    .groups = "drop"
+  )
+plot_df <- plot_df %>%
+  group_by(Group_label) %>%
+  mutate(
+    Genotype_label = paste0(
+      Genotype,
+      " (n=", N, ")"
+    )
+  ) %>%
+  ungroup()
+p_values <- lapply(c(0, 1), function(g) {
+  
+  df <- analysis_data_260 %>%
+    filter(Group == g, !is.na(rs3755468))
+  
+  tab <- table(df$rs3755468, df$Overall.Stage.No.nausea == 0)
+  
+  p <- if (any(tab < 5)) {
+    fisher.test(tab)$p.value
+  } else {
+    chisq.test(tab)$p.value
+  }
+  
+  data.frame(
+    Group_label = factor(
+      g,
+      levels = c(0, 1),
+      labels = c(
+        "Sham electroacupuncture",
+        "True electroacupuncture"
+      )
+    ),
+    P_label = paste0("P = ", signif(p, 3))
+  )
+}) %>% bind_rows()
+geno_colors <- c(
+  "CC" = "#3983B7",
+  "TC" = "#EE9E3C",
+  "TT" = "#4DAF4A"
+)
+p_rs3755468 <- ggplot(
+  plot_df,
+  aes(x = Genotype_label, y = Control_rate, fill = Genotype)
+) +
+  geom_col(
+    width = 0.65,
+    color = "grey30",
+    linewidth = 0.3
+  ) +
+  facet_wrap(~ Group_label, nrow = 1, scales = "free_x") +
+  scale_y_continuous(
+    labels = percent_format(accuracy = 1),
+    expand = expansion(mult = c(0, 0.15))  
+  ) +
+  scale_fill_manual(values = geno_colors) +
+  labs(
+    title = "Overall stage no nausea control rate by rs3755468 genotype in true and sham electroacupuncture groups",
+    subtitle = " ",
+    x = "Genotype",
+    y = "Control Rate (%)"
+  ) +
+  theme_classic(base_size = 15) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(size = 12, color = "grey30"),
+    axis.title = element_text(face = "bold"),
+    axis.text = element_text(color = "black", size = 11),
+    strip.background = element_rect(fill = "#F2F2F2", color = NA),
+    strip.text = element_text(face = "bold"),
+    legend.position = "none",
+    panel.spacing = unit(1.5, "lines")
+  ) +
+
+geom_text(
+  aes(
+    label = percent(Control_rate, accuracy = 1),
+    y = Control_rate
+  ),
+  vjust = -0.6,
+  size = 4.2,
+  color = "black"
+) +
+  
+geom_text(
+  data = p_values,
+  aes(
+    x = 2,
+    y = 1.07,
+    label = P_label
+  ),
+  inherit.aes = FALSE,
+  size = 5,
+  fontface = "italic"
+)
+
+p_rs3755468
+ggsave(
+  filename = "/results/Figure 5.pdf",
+  plot = p_rs3755468,
+  width = 8,
+  height = 6,
+  device = cairo_pdf
+)
+
+
+
+
+
+
+
+
+########
+
+library(tidyverse)
+library(janitor)
+library(gtsummary)   
+library(flextable)   
+library(dplyr)
+
+ 
+data <- read.csv("/results/SNP_analysis_260.csv")
+data <- data %>%
+  filter(Name != "Wang.Yuan") %>%
+  filter(Name != "Jin.Yifan") %>%
+  filter(Name != "SuoerdaiZhang") %>%
+  filter(Name != "QingfangLi") %>%
+  filter(Name != "HonglanMa")
+
+ 
+continuous_vars <- c("Age","BMI")  
+categorical_vars <- c("Acupuncture.days","Sex","ECOG","Histologic.type",
+                      "Menstrual.status","Stage",
+                      "Treatment.setting","Chemotherapy.regimen",
+                      "NK1.RA","HT3RA5.HT3RA","Concurrent.antitumor.drugs","Antiemetic.dose")
+
+ 
+determine_tests <- function(data, categorical_vars, group_var = "Group") {
+  test_list <- list()
+ 
+  test_list[continuous_vars] <- "wilcox.test"
+  
+ 
+  for (var in categorical_vars) {
+   
+    tbl <- table(data[[var]], data[[group_var]])
+    
+    
+    chi_test <- tryCatch(
+      chisq.test(tbl),
+      error = function(e) NULL,
+      warning = function(w) NULL
+    )
+    
+    if (!is.null(chi_test)) {
+      expected <- chi_test$expected
+      if (any(expected < 5, na.rm = TRUE)) {
+        test_list[[var]] <- "fisher.test"
+      } else {
+        test_list[[var]] <- "chisq.test"
+      }
+    } else {
+      
+      test_list[[var]] <- "fisher.test"
+    }
+  }
+  
+  return(test_list)
+}
+
+ 
+test_methods <- determine_tests(data, categorical_vars)
+
+ 
+table1 <- data %>%
+  select(all_of(continuous_vars), all_of(categorical_vars), Group) %>%
+  tbl_summary(
+    by = Group,
+    type = list(
+      all_of(continuous_vars) ~ "continuous",
+      all_of(categorical_vars) ~ "categorical"
+    ),
+    statistic = list(
+      all_of(continuous_vars) ~ "{median} ({min}, {max})",
+      all_of(categorical_vars) ~ "{n} / {N} ({p}%)"
+    ),
+    digits = list(
+      all_of(continuous_vars) ~ 1,
+      all_of(categorical_vars) ~ 1
+    )
+  ) %>%
+  add_p(
+    test = test_methods,
+    pvalue_fun = function(x) formatC(x, format = "f", digits = 4)
+  ) %>%
+  add_n() %>%
+  add_overall() %>%
+  bold_labels() %>%
+  modify_caption("**Table 1. Baseline characteristics of patients**") %>%
+  modify_footnote(
+    update = everything() ~
+      "Median (range) for continuous variables; n/N (%) for categorical variables; p values from Wilcoxon rank-sum test, χ² test or Fisher's exact test as appropriate"
+  )
+
+ 
+print(table1)
+ 
+cat(" :\n")
+for (var in names(test_methods)) {
+  cat(paste0(var, ": ", test_methods[[var]], "\n"))
+}
+
+ 
+table1_flextable <- as_flex_table(table1)
+file_name_word <- "/results/Extended Data Table 2.1.docx"  
+save_as_docx(table1_flextable, path = file_name_word)
+
+
+
+
+
+
+
+
+
+
+
+
+############  Extended Data Table 2
+ 
+library(dplyr)
+library(openxlsx)
+
+ 
+data_path <-  "/results/SNP_analysis_260.csv"
+data <- read.csv(data_path)
+
+ 
+data <- data %>%
+  filter(!Name %in% c(
+    "Wang.Yuan", "Jin.Yifan", "SuoerdaiZhang",
+    "QingfangLi", "HonglanMa"
+  ))
+
+# 
+data$Group <- factor(
+  data$Group,
+  levels = c(1, 0),
+  labels = c("True electroacupuncture", "Sham electroacupuncture")
+)
+ 
+chemo_data <- data %>%
+  filter(!is.na(Chemotherapy.TIME))
+
+ 
+chemo_summary <- chemo_data %>%
+  group_by(Group) %>%
+  summarise(
+    N = n(),
+    Median = median(Chemotherapy.TIME, na.rm = TRUE),
+    Q1 = quantile(Chemotherapy.TIME, 0.25, na.rm = TRUE),
+    Q3 = quantile(Chemotherapy.TIME, 0.75, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    `Median (IQR), months` = sprintf(
+      "%.1f (%.1f–%.1f)",
+      Median, Q1, Q3
+    )
+  ) %>%
+  dplyr::select(Group, N, `Median (IQR), months`)
+
+
+print(chemo_summary)
+
+ 
+wilcox_res <- wilcox.test(
+  Chemotherapy.TIME ~ Group,
+  data = chemo_data
+)
+
+p_value <- wilcox_res$p.value
+
+ 
+supp_table <- chemo_summary %>%
+  mutate(
+    `P value` = ifelse(
+      Group == "True electroacupuncture",
+      formatC(p_value, format = "f", digits = 4),
+      ""
+    )
+  )
+
+print(supp_table)
+
+ 
+write.xlsx(
+  supp_table,
+  file_name_word <-  "/results/Extended Data Table 2.2.xlsx", 
+  rowNames = FALSE
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+###   Extended Data Table 4
+library(autoReg)
+library(tidyverse)
+library(ggsci)
+library(survival)
+
+
+data <- read.csv("/results/SNP_analysis_260.csv")
+data <- data %>%
+  filter(Name != "Wang.Yuan") %>%
+  filter(Name != "Jin.Yifan") %>%
+  filter(Name != "SuoerdaiZhang") %>%
+  filter(Name != "QingfangLi") %>%
+  filter(Name != "HonglanMa")
+
+data <- data %>%
+  mutate(Chemotherapy.regimen = case_when(
+    Chemotherapy.regimen == "Cisplatin.based" ~ "Carboplatin.based",
+    TRUE ~ as.character(Chemotherapy.regimen)
+  ))
+
+ 
+
+ 
+data$Overall.Stage.No.nausea <- ifelse(data$Overall.Stage.No.nausea == 0, 1, 0)
+
+
+ 
+data$Age.group <- ifelse(data$Age < 40, "<40", "≥40")
+
+data$Age.group <- factor(data$Age.group, levels = c("≥40", "<40"))
+
+
+ 
+data$BMI.group <- cut(data$BMI,
+                      breaks = c(-Inf, 18.5, 24.9, Inf),
+                      labels = c("<18.5", "18.5-24.9", "≥25"),
+                      right = TRUE)
+
+ 
+data$BMI.group <- factor(data$BMI.group, levels = c("18.5-24.9", "<18.5", "≥25"))
+
+ 
+
+data$BMI = as.numeric(data$BMI)
+
+data$Age.group <- as.factor(data$Age.group)
+
+
+data$Histologic.type <- as.factor(data$Histologic.type)
+data$Stage <- as.factor(data$Stage)
+data$Menstrual.status <- as.factor(data$Menstrual.status)
+data$Chemotherapy.regimen <- as.factor(data$Chemotherapy.regimen)
+data$Treatment.setting <- as.factor(data$Treatment.setting)
+data$NK1.RA <- as.factor(data$NK1.RA)
+
+data$HT3RA5.HT3RA <- as.factor(data$HT3RA5.HT3RA)
+data$Group <- as.factor(data$Group)
+
+ colnames(data) <- gsub("\\.", "_", colnames(data))
+
+
+ data$rs3755468 <- ifelse(
+  data$rs3755468 %in% c("TC", "TT"),
+  "TC.TT",
+  data$rs3755468
+)
+data <- data[data$Group != 1, ]
+
+ 
+fit <- glm(Overall_Stage_No_nausea ~ 
+             
+             Chemotherapy_regimen +NK1_RA 
+           
+           + rs3755468
+           ,
+           data = data,
+           family = "binomial")
+
+
+ 
+autoReg(fit, uni = TRUE, threshold = 1) %>% myft()
+  
+library(broom)
+
+tidy_fit <- tidy(fit, exponentiate = TRUE, conf.int = TRUE)
+
+tidy_fit
+
+
+
+
+
+library(purrr)
+library(broom)
+library(dplyr)
+
+ 
+vars <- c(
+  "Chemotherapy_regimen",
+  "NK1_RA",
+  "rs3755468"
+)
+
+ 
+uni_res <- map_dfr(vars, function(v) {
+  
+  fml <- as.formula(
+    paste("Overall_Stage_No_nausea ~", v)
+  )
+  
+  glm(fml, data = data, family = binomial) %>%
+    tidy(exponentiate = TRUE, conf.int = TRUE) %>%
+    filter(term != "(Intercept)") %>%
+    mutate(variable = v)
+})
+head(uni_res)
+
+
+
+
+
+
+ 
+write.csv(
+  tidy_fit,
+  file = "/results/Extended Data Table 4.1.csv",
+  row.names = FALSE
+)
+
+
+ 
+write.csv(
+  uni_res,
+  file = "/results/Extended Data Table 4.2.csv",
+  row.names = FALSE
+)
+
+
+
+
+library(autoReg)
+library(tidyverse)
+library(ggsci)
+library(survival)
+
+
+data <- read.csv("/results/SNP_analysis_260.csv")
+data <- data %>%
+  filter(Name != "Wang.Yuan") %>%
+  filter(Name != "Jin.Yifan") %>%
+  filter(Name != "SuoerdaiZhang") %>%
+  filter(Name != "QingfangLi") %>%
+  filter(Name != "HonglanMa")
+
+data <- data %>%
+  mutate(Chemotherapy.regimen = case_when(
+    Chemotherapy.regimen == "Cisplatin.based" ~ "Carboplatin.based",
+    TRUE ~ as.character(Chemotherapy.regimen)
+  ))
+
+ 
+
+ 
+data$Overall.Stage.No.nausea <- ifelse(data$Overall.Stage.No.nausea == 0, 1, 0)
+
+
+ 
+data$Age.group <- ifelse(data$Age < 40, "<40", "≥40")
+
+data$Age.group <- factor(data$Age.group, levels = c("≥40", "<40"))
+
+
+ 
+data$BMI.group <- cut(data$BMI,
+                      breaks = c(-Inf, 18.5, 24.9, Inf),
+                      labels = c("<18.5", "18.5-24.9", "≥25"),
+                      right = TRUE)
+
+ 
+data$BMI.group <- factor(data$BMI.group, levels = c("18.5-24.9", "<18.5", "≥25"))
+
+ 
+
+data$BMI = as.numeric(data$BMI)
+
+data$Age.group <- as.factor(data$Age.group)
+
+
+data$Histologic.type <- as.factor(data$Histologic.type)
+data$Stage <- as.factor(data$Stage)
+data$Menstrual.status <- as.factor(data$Menstrual.status)
+data$Chemotherapy.regimen <- as.factor(data$Chemotherapy.regimen)
+data$Treatment.setting <- as.factor(data$Treatment.setting)
+data$NK1.RA <- as.factor(data$NK1.RA)
+
+data$HT3RA5.HT3RA <- as.factor(data$HT3RA5.HT3RA)
+data$Group <- as.factor(data$Group)
+
+ colnames(data) <- gsub("\\.", "_", colnames(data))
+
+
+
+
+ 
+data$rs3755468 <- ifelse(
+  data$rs3755468 %in% c("TC", "TT"),
+  "TC.TT",
+  data$rs3755468
+)
+data <- data[data$Group != 0, ]
+
+ 
+fit <- glm(Overall_Stage_No_nausea ~ 
+            
+             Chemotherapy_regimen +NK1_RA 
+    
+           + rs3755468
+           ,
+           data = data,
+           family = "binomial")
+
+
+ 
+autoReg(fit, uni = TRUE, threshold = 1) %>% myft()
+ 
+library(broom)
+
+tidy_fit <- tidy(fit, exponentiate = TRUE, conf.int = TRUE)
+
+tidy_fit
+
+
+
+
+
+library(purrr)
+library(broom)
+library(dplyr)
+
+ 
+vars <- c(
+  "Chemotherapy_regimen",
+  "NK1_RA",
+  "rs3755468"
+)
+
+ 
+uni_res <- map_dfr(vars, function(v) {
+  
+  fml <- as.formula(
+    paste("Overall_Stage_No_nausea ~", v)
+  )
+  
+  glm(fml, data = data, family = binomial) %>%
+    tidy(exponentiate = TRUE, conf.int = TRUE) %>%
+    filter(term != "(Intercept)") %>%
+    mutate(variable = v)
+})
+head(uni_res)
+
+
+
+ 
+write.csv(
+  tidy_fit,
+  file = "/results/Extended Data Table 4.3.csv",
+  row.names = FALSE
+)
+
+ 
+write.csv(
+  uni_res,
+  file = "/results/Extended Data Table 4.4.csv",
+  row.names = FALSE
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+###Extended Data Fig. 1 is a flowchart, so there is no code.
+
+
+
+### Extended Data Fig. 2
 
 library(ggplot2)
 library(dplyr)
@@ -1118,7 +2166,7 @@ final_plot <- ggplot(group_summaries,
     x = "",
     y = "Control Rate (%)",
     fill = " ",
-    caption = "Extended Data Fig. 1. Proportion of patients with no nausea during the overall, acute, and delayed phases in the true and sham electroacupuncture groups (per-protocol set).\nError bars represent 95% confidence intervals."
+    caption = "Extended Data Fig. 2. Proportion of patients with no nausea during the overall, acute, and delayed phases in the true and sham electroacupuncture groups (per-protocol set).\nError bars represent 95% confidence intervals."
   ) +
   theme_minimal() +
   theme(
@@ -1145,14 +2193,14 @@ final_plot <- ggplot(group_summaries,
 print(final_plot)
 
 
-pdf_out <- "/results/Extended Data Fig. 1.pdf"
+pdf_out <- "/results/Extended Data Fig. 2.pdf"
 ggsave(filename = pdf_out, plot = final_plot, width = 12, height = 10, units = "in")
 
 
 
 
 
-### Extended Data Fig. 2
+### Extended Data Fig. 3
 
 library(ggplot2)
 library(dplyr)
@@ -1288,7 +2336,7 @@ final_plot <- ggplot(group_summaries,
     x = "",
     y = "Control Rate (%)",
     fill = " ",
-    caption = "Extended Data Fig. 2. Proportion of patients with no nausea during the overall phase in the true and sham electroacupuncture groups after exclusion of advanced-stage patients with prior chemotherapy."
+    caption = "Extended Data Fig. 3. Proportion of patients with no nausea during the overall phase in the true and sham electroacupuncture groups after exclusion of advanced-stage patients with prior chemotherapy."
   ) +
   theme_minimal() +
   theme(
@@ -1317,7 +2365,7 @@ print(final_plot)
 print(final_plot)
 
 
-pdf_out <- "/results/Extended Data Fig. 2.pdf"
+pdf_out <- "/results/Extended Data Fig. 3.pdf"
 ggsave(filename = pdf_out, plot = final_plot, width = 8, height = 6, units = "in")
 
 
@@ -1339,7 +2387,7 @@ ggsave(filename = pdf_out, plot = final_plot, width = 8, height = 6, units = "in
 
 
 
-### Extended Data Fig. 3 6
+### Extended Data Fig. 4
 library(marginaleffects)
 library(rio)
 library(survival)
@@ -1500,7 +2548,7 @@ p$plot <- p$plot +
 print(p)
 
 
-pdf("/results/Extended Data Fig. 3.pdf", width = 6, height = 6)
+pdf("/results/Extended Data Fig. 4.pdf", width = 6, height = 6)
 print(p)
 dev.off()
 
@@ -1520,7 +2568,7 @@ dev.off()
 
 
 
-### Extended Data Fig. 4
+### Extended Data Fig.5
 library(ggplot2)
 library(dplyr)
 library(tidyr)
@@ -1644,7 +2692,7 @@ p <- ggplot(
   labs(
     x = NULL,
     y = "Percentage of patients (%)",
-    caption = "Extended Data Fig. 4. Distribution of maximum nausea severity during the 5-day follow-up in the true and sham electroacupuncture groups."
+    caption = "Extended Data Fig. 5. Distribution of maximum nausea severity during the 5-day follow-up in the true and sham electroacupuncture groups."
   ) +
   
   theme_classic(base_size = 12) +
@@ -1671,7 +2719,7 @@ p <- ggplot(
 p
 
 ggsave(
-  filename = "/results/Extended Data Fig. 4.pdf",
+  filename = "/results/Extended Data Fig. 5.pdf",
   plot = p,
   width = 6,
   height = 4,
@@ -1689,7 +2737,7 @@ ggsave(
 
 
 
-###Extended Data Fig. 5
+###Extended Data Fig. 6
 library(ggplot2)
 library(dplyr)
 library(scales)
@@ -1795,7 +2843,7 @@ p <- ggplot(data, aes(x = Group, y = Max_Nausea_VAS, fill = Group)) +
   labs(
     x = NULL,
     y = "VAS score",
-    caption = "Extended Data Fig. 5. Distribution of maximum nausea severity assessed by VAS during the 5-day follow-up. VAS, visual analogue scale; IQR, interquartile range."
+    caption = "Extended Data Fig. 6. Distribution of maximum nausea severity assessed by VAS during the 5-day follow-up. VAS, visual analogue scale; IQR, interquartile range."
   ) +
   
   theme_classic(base_size = 12) +
@@ -1820,7 +2868,7 @@ p <- ggplot(data, aes(x = Group, y = Max_Nausea_VAS, fill = Group)) +
 p
 
 ggsave(
-  filename = "/results/Extended Data Fig. 5.pdf",
+  filename = "/results/Extended Data Fig. 6.pdf",
   plot = p,
   width = 6,
   height = 4,
@@ -1833,7 +2881,7 @@ ggsave(
 
 
 
-## Extended Data Fig. 6
+## Extended Data Fig. 7
 library(marginaleffects)
 library(rio)
 library(survival)
@@ -2015,23 +3063,23 @@ nnt_row <- data.frame(
 results_summary <- bind_rows(results_summary, nnt_row)
 
 
-write.csv(results_summary, file.path(output_dir, "Extended Data Fig. 6.csv"), 
+write.csv(results_summary, file.path(output_dir, "Extended Data Fig. 7.csv"), 
           row.names = FALSE, fileEncoding = "UTF-8")
 
 
-print("/results/Extended Data Fig. 6.csv")
+print("/results/Extended Data Fig. 7.csv")
 print(results_summary)
 
 
 write.csv(results_summary,
-          "/results/Extended Data Fig. 6.csv",
+          "/results/Extended Data Fig. 7.csv",
           row.names = FALSE)
 
 
 print(results_summary)
 
 
-### Extended Data Fig. 7
+### Extended Data Fig. 8
 data_path <- "/data/ECO Nature data.csv"
 data <- read.csv(data_path)
 
@@ -2133,7 +3181,7 @@ supp_plot <- ggplot(supp_group_summaries,
     x = "",
     y = "Control Rate (%)",
     fill = " ",
-    caption = "Extended Data Fig. 7. Proportion of patients achieving no significant nausea and no nausea (VAS score < 5 mm) during the overall, acute, and delayed phases \n in the true and sham electroacupuncture groups."
+    caption = "Extended Data Fig. 8. Proportion of patients achieving no significant nausea and no nausea (VAS score < 5 mm) during the overall, acute, and delayed phases \n in the true and sham electroacupuncture groups."
   )+
   
   theme_minimal() +
@@ -2172,7 +3220,7 @@ supp_plot <- ggplot(supp_group_summaries,
 print(supp_plot)
 
 
-pdf_out <- "/results/Extended Data Fig. 7.pdf"
+pdf_out <- "/results/Extended Data Fig. 8.pdf"
 ggsave(filename = pdf_out, plot = supp_plot, width = 14, height = 8, units = "in")
 
 
@@ -2188,7 +3236,7 @@ ggsave(filename = pdf_out, plot = supp_plot, width = 14, height = 8, units = "in
 
 
 
-###Extended Data Fig. 8
+###Extended Data Fig. 9
 library(dplyr)
 library(ggplot2)
 
@@ -2284,7 +3332,7 @@ p <- ggplot(data, aes(x = Nausea, y = Delta_EQ5D5L, fill = Nausea)) +
   labs(
     x = NULL,
     y = "Change in EQ-5D-5L index (post − baseline)",
-    caption = "Extended Data Fig. 8. Distribution of change in EQ-5D-5L index according to nausea occurrence during the overall phase. IQR, interquartile range; EO-5D-5L: EuroQol-5-dimension 5-level."
+    caption = "Extended Data Fig. 9. Distribution of change in EQ-5D-5L index according to nausea occurrence during the overall phase. IQR, interquartile range; EO-5D-5L: EuroQol-5-dimension 5-level."
   ) +
   
   theme_classic(base_size = 12) +
@@ -2298,7 +3346,7 @@ p <- ggplot(data, aes(x = Nausea, y = Delta_EQ5D5L, fill = Nausea)) +
 p
 
 ggsave(
-  filename = "/results/Extended Data Fig. 8.pdf",
+  filename = "/results/Extended Data Fig. 9.pdf",
   plot = p,
   width = 6,
   height = 6,
@@ -2316,7 +3364,7 @@ ggsave(
 
 
 
-###Extended Data Fig. 9
+###Extended Data Fig. 910
 library(ggplot2)
 library(dplyr)
 library(tidyr)
@@ -2450,7 +3498,7 @@ final_plot <- ggplot(
     x = "",
     y = "Incidence (%)",
     fill = " ",
-    caption = "Extended Data Fig. 9. Incidence of fatigue, insomnia, and constipation in the true and sham electroacupuncture groups."
+    caption = "Extended Data Fig. 10. Incidence of fatigue, insomnia, and constipation in the true and sham electroacupuncture groups."
   ) +
   
   theme_minimal() +
@@ -2470,7 +3518,7 @@ final_plot <- ggplot(
 print(final_plot)
 
 
-pdf_out <- "/results/Extended Data Fig. 9.pdf"
+pdf_out <- "/results/Extended Data Fig. 10.pdf"
 ggsave(filename = pdf_out, plot = final_plot, width = 8, height = 6, units = "in")
 
 
@@ -2487,7 +3535,7 @@ ggsave(filename = pdf_out, plot = final_plot, width = 8, height = 6, units = "in
 
 
 
-###Extended Data Fig. 10
+###Extended Data Fig. 11
 
 library(ggplot2)
 library(dplyr)
@@ -2543,7 +3591,7 @@ final_plot <- ggplot(blinding_summary, aes(x = Group, y = Percentage*100, fill =
     x = "",
     y = "Percentage of patients (%)",
     fill = " ",
-    caption = "Extended Data Fig. 10. Blinding assessment in the true and sham electroacupuncture groups."
+    caption = "Extended Data Fig. 11. Blinding assessment in the true and sham electroacupuncture groups."
   ) +
   theme_minimal(base_size = 14) +
   theme(
@@ -2560,7 +3608,7 @@ final_plot <- ggplot(blinding_summary, aes(x = Group, y = Percentage*100, fill =
 print(final_plot)
 
 
-pdf_out <- "/results/Extended Data Fig. 10.pdf"
+pdf_out <- "/results/Extended Data Fig. 11.pdf"
 ggsave(filename = pdf_out, plot = final_plot, width = 8, height = 6, units = "in")
 
 
@@ -2582,7 +3630,7 @@ ggsave(filename = pdf_out, plot = final_plot, width = 8, height = 6, units = "in
 
 
 
-#######Extended Data Fig. 11
+#######Extended Data Fig. 12
 library(ggplot2)
 library(dplyr)
 library(tidyr)
@@ -2686,7 +3734,7 @@ final_plot <- ggplot(group_summaries,
     x = "",
     y = "Incidence (%)",
     fill = " ",
-    caption = "Extended Data Fig. 11. Incidence of electroacupuncture-related adverse event in the true and sham electroacupuncture groups."
+    caption = "Extended Data Fig. 12. Incidence of electroacupuncture-related adverse event in the true and sham electroacupuncture groups."
   ) +
   theme_minimal() +
   theme(
@@ -2709,5 +3757,5 @@ final_plot <- ggplot(group_summaries,
 
 print(final_plot)
 
-pdf_out <- "/results/Extended Data Fig. 11.pdf"
+pdf_out <- "/results/Extended Data Fig. 12.pdf"
 ggsave(filename = pdf_out, plot = final_plot, width = 12, height = 8, units = "in")
