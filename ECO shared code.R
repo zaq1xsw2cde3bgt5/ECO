@@ -971,134 +971,19 @@ ggsave(
 
 
 
-
+####### Figure 4
 
 library(dplyr)
 
- 
-data <- read.csv(
-  "/data/ECO Nature data.csv",
-  stringsAsFactors = FALSE
-)
 
 
- 
-snp_5 <- c(
-  "rs6443930",
-  "rs1045642",
-  "rs1128503",
-  "rs2530797",
-  "rs3755468"
-)
-
-snp_6 <- c(
-  snp_5,
-  "rs4680"
-)
-
- 
-data_clean <- data %>%
-  filter(!Name %in% c(
-    "Wang.Yuan",
-    "Jin.Yifan",
-    "SuoerdaiZhang",
-    "QingfangLi",
-    "HonglanMa"
-  )) %>%
-  mutate(across(all_of(snp_6), ~ na_if(., "#N/A")))
- 
-
- 
-complete_5snp <- data_clean %>%
-  filter(if_all(all_of(snp_5), ~ !is.na(.)))
-
-nrow(complete_5snp)   
- 
-complete_6snp <- data_clean %>%
-  filter(if_all(all_of(snp_6), ~ !is.na(.)))
-
-nrow(complete_6snp)    
- 
-supplement_pool <- complete_5snp %>%
-  filter(is.na(rs4680))
-
-nrow(supplement_pool)   
-
- 
-core_data <- complete_6snp
-
-table(core_data$Group)
-
- 
-set.seed(2025)
- 
-n_need <- 260 - nrow(core_data)  
-
-core_group <- table(core_data$Group)
-
-minor_group <- names(which.min(core_group))
-major_group <- names(which.max(core_group))
-
-diff_now <- abs(core_group[minor_group] - core_group[major_group])
-
- 
-n_to_minor <- max(0, ceiling((diff_now - 1) / 1))
-n_to_minor <- min(n_to_minor, n_need)
-
- 
-supp_minor_df <- supplement_pool %>%
-  filter(Group == minor_group)
-
-n_pick_minor <- min(n_to_minor, nrow(supp_minor_df))
-
-supp_minor <- supp_minor_df %>%
-  slice_sample(n = n_pick_minor)
-
- 
-n_left <- n_need - nrow(supp_minor)
-
-supp_rest_df <- supplement_pool %>%
-  filter(!Name %in% supp_minor$Name)
-
-n_pick_rest <- min(n_left, nrow(supp_rest_df))
-
-supp_rest <- supp_rest_df %>%
-  slice_sample(n = n_pick_rest)
-
-supplement_selected <- bind_rows(supp_minor, supp_rest)
-
- 
-analysis_data_260 <- bind_rows(core_data, supplement_selected)
-
-nrow(analysis_data_260)          
-table(analysis_data_260$Group)    
-
-sum(
-  apply(
-    analysis_data_260[, snp_6],
-    1,
-    function(x) all(!is.na(x))
-  )
-)
+data_path <- "/data/ECO Nature SNP data.csv"
+analysis_data_260 <- read.csv(data_path)
 
 
 
 
-write.csv(
-  analysis_data_260,
-  "/results/SNP_analysis_260.csv",
-  row.names = FALSE,
-  na = ""
-)
-
-
-
-
-
-
-
-
-
+data = analysis_data_260
 
 
 
@@ -1528,13 +1413,10 @@ library(flextable)
 library(dplyr)
 
  
-data <- read.csv("/results/SNP_analysis_260.csv")
-data <- data %>%
-  filter(Name != "Wang.Yuan") %>%
-  filter(Name != "Jin.Yifan") %>%
-  filter(Name != "SuoerdaiZhang") %>%
-  filter(Name != "QingfangLi") %>%
-  filter(Name != "HonglanMa")
+ 
+data_path <- "/data/ECO Nature SNP data.csv"
+data <- read.csv(data_path)
+
 
  
 continuous_vars <- c("Age","BMI")  
@@ -1640,16 +1522,11 @@ save_as_docx(table1_flextable, path = file_name_word)
 library(dplyr)
 library(openxlsx)
 
- 
-data_path <-  "/results/SNP_analysis_260.csv"
+data_path <- "/data/ECO Nature SNP data.csv"
 data <- read.csv(data_path)
 
- 
-data <- data %>%
-  filter(!Name %in% c(
-    "Wang.Yuan", "Jin.Yifan", "SuoerdaiZhang",
-    "QingfangLi", "HonglanMa"
-  ))
+
+  
 
 # 
 data$Group <- factor(
@@ -1738,15 +1615,10 @@ library(tidyverse)
 library(ggsci)
 library(survival)
 
+data_path <- "/data/ECO Nature SNP data.csv"
+data <- read.csv(data_path)
 
-data <- read.csv("/results/SNP_analysis_260.csv")
-data <- data %>%
-  filter(Name != "Wang.Yuan") %>%
-  filter(Name != "Jin.Yifan") %>%
-  filter(Name != "SuoerdaiZhang") %>%
-  filter(Name != "QingfangLi") %>%
-  filter(Name != "HonglanMa")
-
+ 
 data <- data %>%
   mutate(Chemotherapy.regimen = case_when(
     Chemotherapy.regimen == "Cisplatin.based" ~ "Carboplatin.based",
@@ -1878,14 +1750,10 @@ library(tidyverse)
 library(ggsci)
 library(survival)
 
+data_path <- "/data/ECO Nature SNP data.csv"
+data <- read.csv(data_path)
 
-data <- read.csv("/results/SNP_analysis_260.csv")
-data <- data %>%
-  filter(Name != "Wang.Yuan") %>%
-  filter(Name != "Jin.Yifan") %>%
-  filter(Name != "SuoerdaiZhang") %>%
-  filter(Name != "QingfangLi") %>%
-  filter(Name != "HonglanMa")
+  
 
 data <- data %>%
   mutate(Chemotherapy.regimen = case_when(
