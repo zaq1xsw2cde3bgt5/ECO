@@ -1,19 +1,4 @@
-#install.packages("ggplot2")
-#install.packages("dplyr")
-#install.packages("tidyr")
-#install.packages("broom")
-#install.packages("purrr")
-#install.packages("openxlsx")
-#install.packages("scales")
-#install.packages("readr")
-#install.packages("stringr")
-#install.packages("forestploter")
-#install.packages("grid")
-#install.packages("marginaleffects")
-#install.packages("rio")
-#install.packages("survival")
-#install.packages("survminer")
-#install.packages("survival")
+ 
 
 library(ggplot2)
 library(dplyr)
@@ -28,11 +13,11 @@ data <- read.csv(data_path)
 
 
 data <- data %>%
-  filter(Name != "Wang.Yuan") %>%
-  filter(Name != "Jin.Yifan") %>%
-  filter(Name != "SuoerdaiZhang") %>%
-  filter(Name != "QingfangLi") %>%
-  filter(Name != "HonglanMa")
+  filter(Set != "ITT.1") %>%
+  filter(Set != "ITT.2") %>%
+  filter(Set != "ITT.3") %>%
+  filter(Set != "ITT.4") %>%
+  filter(Set != "ITT.5")
 
 data$Group <- factor(
   data$Group,
@@ -201,8 +186,8 @@ write.xlsx(group_summaries_export, xlsx_out, asTable = TRUE)
 ##### Figure 1
 
 data <- read.csv("/data/ECO Nature data.csv") %>%
-  filter(Name != "Wang.Yuan", Name != "Jin.Yifan",Name != "SuoerdaiZhang",
-         Name != "QingfangLi",Name != "HonglanMa") %>%
+  filter(Set != "ITT.1", Set != "ITT.2",Set != "ITT.3",
+         Set != "ITT.4",Set != "ITT.5") %>%
   
   
   mutate(
@@ -463,11 +448,11 @@ data_path <- "/data/ECO Nature data.csv"
 data <- read.csv(data_path)
 
 data <- data %>%
-  filter(Name != "Wang.Yuan") %>%
-  filter(Name != "Jin.Yifan") %>%
-  filter(Name != "SuoerdaiZhang") %>%
-  filter(Name != "QingfangLi") %>%
-  filter(Name != "HonglanMa")
+  filter(Set != "ITT.1") %>%
+  filter(Set != "ITT.2") %>%
+  filter(Set != "ITT.3") %>%
+  filter(Set != "ITT.4") %>%
+  filter(Set != "ITT.5")
 
 
 data$Group <- factor(
@@ -637,8 +622,8 @@ library(forcats)
 data_path <- "/data/ECO Nature data.csv"
 data <- read.csv(data_path)
 data <- data %>%
-  filter(!Name %in% c("Wang.Yuan", "Jin.Yifan", "SuoerdaiZhang",
-                      "QingfangLi", "HonglanMa"))
+  filter(!Set %in% c("ITT.1", "ITT.2", "ITT.3",
+                      "ITT.4", "ITT.5"))
 
 data <- data %>%
   mutate(
@@ -800,8 +785,8 @@ library(broom)
 data_path <- "/data/ECO Nature data.csv"
 data <- read.csv(data_path)
 data <- data %>%
-  filter(!Name %in% c("Wang.Yuan", "Jin.Yifan", "SuoerdaiZhang",
-                      "QingfangLi", "HonglanMa"))
+  filter(!Set %in% c("ITT.1", "ITT.2", "ITT.3",
+                      "ITT.4", "ITT.5"))
 
 data <- data %>%
   mutate(
@@ -1915,8 +1900,8 @@ data_path <- "/data/ECO Nature data.csv"
 data <- read.csv(data_path)
 
 data <- data %>%
-  filter(!Name %in% c("Wang.Yuan", "Jin.Yifan", "SuoerdaiZhang",
-                      "QingfangLi", "HonglanMa", "Zhao.Yingying"))
+  filter(!Set %in% c("ITT.1", "ITT.2", "ITT.3",
+                      "ITT.4", "ITT.5", "PPS.1"))
 
 data$Group <- factor(
   data$Group,
@@ -2083,11 +2068,10 @@ data <- read.csv(data_path)
 
 
 
+
 data <- data %>%
-  filter(!Name %in% c(
-    "Wang.Yuan", "Jin.Yifan", "SuoerdaiZhang",
-    "QingfangLi", "HonglanMa"
-  ))
+  filter(!Set %in% c("ITT.1", "ITT.2", "ITT.3",
+                     "ITT.4", "ITT.5"))
 data <- data %>%
   filter(is.na(Chemotherapy.TIME))
 
@@ -2267,11 +2251,11 @@ data_path <- "/data/ECO Nature data.csv"
 df <- read.csv(data_path, stringsAsFactors = FALSE, fileEncoding="UTF-8")
 
 df <- df %>%
-  filter(Name != "Wang.Yuan") %>%
-  filter(Name != "Jin.Yifan") %>%
-  filter(Name != "SuoerdaiZhang") %>%
-  filter(Name != "QingfangLi") %>%
-  filter(Name != "HonglanMa")
+  filter(Set != "ITT.1") %>%
+  filter(Set != "ITT.2") %>%
+  filter(Set != "ITT.3") %>%
+  filter(Set != "ITT.4") %>%
+  filter(Set != "ITT.5")
 
 
 df$BMI = ifelse(df$BMI < 18.5, 1,
@@ -2451,12 +2435,11 @@ data <- read.csv(data_path, stringsAsFactors = FALSE, fileEncoding="UTF-8")
 
 
 data <- data %>%
-  filter(Name != "Wang.Yuan") %>%
-  filter(Name != "Jin.Yifan") %>%
-  filter(Name != "SuoerdaiZhang") %>%
-  filter(Name != "QingfangLi") %>%
-  filter(Name != "HonglanMa")
-
+  filter(Set != "ITT.1") %>%
+  filter(Set != "ITT.2") %>%
+  filter(Set != "ITT.3") %>%
+  filter(Set != "ITT.4") %>%
+  filter(Set != "ITT.5")
 
 data$Group <- factor(
   data$Group,
@@ -2612,10 +2595,10 @@ library(scales)
 
 data_path <- "/data/ECO Nature data.csv"
 data <- read.csv(data_path, stringsAsFactors = FALSE, fileEncoding="UTF-8")
-data <- data %>%
-  filter(!Name %in% c("Wang.Yuan", "Jin.Yifan", "SuoerdaiZhang",
-                      "QingfangLi", "HonglanMa"))
 
+data <- data %>%
+  filter(!Set %in% c("ITT.1", "ITT.2", "ITT.3",
+                     "ITT.4", "ITT.5"))
 data$Group <- factor(
   data$Group,
   levels = c(1, 0),
@@ -2771,9 +2754,9 @@ if (!dir.exists(output_dir)) {
 df <- read.csv(data_path, stringsAsFactors = FALSE, fileEncoding = "UTF-8")
 
 
-df <- df %>%
-  filter(!Name %in% c("Wang.Yuan", "Jin.Yifan", "SuoerdaiZhang", "QingfangLi", "HonglanMa"))
-
+ df <- df%>%
+  filter(!Set %in% c("ITT.1", "ITT.2", "ITT.3",
+                     "ITT.4", "ITT.5"))
 
 df$BMI <- factor(
   ifelse(df$BMI < 18.5, 1,
@@ -2952,12 +2935,11 @@ data_path <- "/data/ECO Nature data.csv"
 data <- read.csv(data_path)
 
 data <- data %>%
-  filter(Name != "Wang.Yuan") %>%
-  filter(Name != "Jin.Yifan") %>%
-  filter(Name != "SuoerdaiZhang") %>%
-  filter(Name != "QingfangLi") %>%
-  filter(Name != "HonglanMa")
-
+  filter(Set != "ITT.1") %>%
+  filter(Set != "ITT.2") %>%
+  filter(Set != "ITT.3") %>%
+  filter(Set != "ITT.4") %>%
+  filter(Set != "ITT.5")
 
 data$Group <- factor(
   data$Group,
@@ -3112,12 +3094,10 @@ data_path <- "/data/ECO Nature data.csv"
 data <- read.csv(data_path)
 
 
+ 
 data <- data %>%
-  filter(!Name %in% c(
-    "Wang.Yuan", "Jin.Yifan", "SuoerdaiZhang",
-    "QingfangLi", "HonglanMa"
-  ))
-
+  filter(!Set %in% c("ITT.1", "ITT.2", "ITT.3",
+                     "ITT.4", "ITT.5"))
 data <- data %>%
   filter(!is.na(EQ.5D.5L0), !is.na(EQ.5D.5L1)) %>%
   mutate(
@@ -3245,11 +3225,8 @@ data <- read.csv(data_path)
 
 
 data <- data %>%
-  filter(!Name %in% c(
-    "Wang.Yuan", "Jin.Yifan", "SuoerdaiZhang",
-    "QingfangLi", "HonglanMa"
-  ))
-
+  filter(!Set %in% c("ITT.1", "ITT.2", "ITT.3",
+                     "ITT.4", "ITT.5"))
 
 data$Group <- factor(
   data$Group,
@@ -3415,12 +3392,11 @@ data <- read.csv(data_path)
 
 
 data <- data %>%
-  filter(Name != "Wang.Yuan") %>%
-  filter(Name != "Jin.Yifan") %>%
-  filter(Name != "SuoerdaiZhang") %>%
-  filter(Name != "QingfangLi") %>%
-  filter(Name != "HonglanMa")
-
+  filter(Set != "ITT.1") %>%
+  filter(Set != "ITT.2") %>%
+  filter(Set != "ITT.3") %>%
+  filter(Set != "ITT.4") %>%
+  filter(Set != "ITT.5")
 
 data$Group <- factor(
   data$Group,
@@ -3512,12 +3488,11 @@ data <- read.csv(data_path)
 
 
 data <- data %>%
-  filter(Name != "Wang.Yuan") %>%
-  filter(Name != "Jin.Yifan") %>%
-  filter(Name != "SuoerdaiZhang") %>%
-  filter(Name != "QingfangLi") %>%
-  filter(Name != "HonglanMa")
-
+  filter(Set != "ITT.1") %>%
+  filter(Set != "ITT.2") %>%
+  filter(Set != "ITT.3") %>%
+  filter(Set != "ITT.4") %>%
+  filter(Set != "ITT.5")
 
 data <- data %>%
   mutate(Adverse.events.related.to.electroacupuncture = 
